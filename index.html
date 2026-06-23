@@ -14,7 +14,6 @@
         
         .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
         
-        /* Neon Gaming Header Style */
         h1 { font-size: 2.6rem; color: #00ffcc; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
         h2 { margin-bottom: 25px; color: #aaa; font-size: 1rem; font-weight: normal; }
         
@@ -30,11 +29,9 @@
         .toggle-link { margin-top: 20px; display: block; color: #aaa; cursor: pointer; font-size: 0.9rem; }
         .toggle-link span { color: #00ffcc; text-decoration: underline; font-weight: bold; }
         
-        /* Help Section Setup for Admin Panel */
         .help-section { margin-top: 25px; padding-top: 15px; border-top: 1px solid #2c2c3e; font-size: 0.85rem; color: #777; display: none; }
         .help-section a { color: #25D366; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; }
-        .help-section a:hover { text-decoration: underline; }
-
+        
         .error-msg { color: #ff4d4d; margin-bottom: 15px; font-size: 0.9rem; display: none; background: rgba(255, 77, 77, 0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 77, 77, 0.2); }
         .success-msg { color: #25D366; margin-bottom: 15px; font-size: 0.9rem; display: none; background: rgba(37, 211, 102, 0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(37, 211, 102, 0.2); }
     </style>
@@ -45,7 +42,6 @@
         <h1>my77play</h1>
         <h2 id="form-title">Login to Play</h2>
 
-        <!-- Notification Alerts -->
         <div id="error-box" class="error-msg"></div>
         <div id="success-box" class="success-msg"></div>
 
@@ -63,12 +59,10 @@
             <button type="submit" id="submit-btn">Login</button>
         </form>
 
-        <!-- Toggle Form Screen -->
         <div class="toggle-link" id="toggle-auth" onclick="toggleMode()">
             Don't have an account? <span>Register New Account</span>
         </div>
 
-        <!-- Help Section (Controlled by Admin Database) -->
         <div class="help-section" id="help-box">
             Forgot Password or Need Help? <br>
             <a href="#" target="_blank" id="whatsapp-link">💬 Contact Admin on WhatsApp</a>
@@ -76,11 +70,13 @@
     </div>
 
     <script>
-        // --- 1. DIRECT SUPABASE CONNECTION (VERIFIED) ---
+        // --- 1. DIRECT SUPABASE CONNECTION (FIXED INITIALIZATION ERROR) ---
         const supabaseUrl = 'https://supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
         
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // FIXED: Changed from supabase.createClient to global supabase.createClient
+        const instance = window.supabase || supabase;
+        const supabaseClient = instance.createClient(supabaseUrl, supabaseKey);
 
         // --- 2. MANAGEMENT STATE ---
         let isLoginMode = true;
@@ -96,7 +92,7 @@
         // --- 3. DYNAMIC WHATSAPP SYSTEM ---
         async function loadHelpNumber() {
             try {
-                const { data, error } = await supabase.from('admin_settings').select('value').eq('key', 'whatsapp').single();
+                const { data, error } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').single();
                 if (data && data.value) {
                     whatsappLink.href = 'https://wa.me' + data.value;
                     helpBox.style.display = 'block';
@@ -135,11 +131,10 @@
             const customEmail = mobile + '@my77play.com';
 
             if (isLoginMode) {
-                // ---- LOGIN ----
                 submitBtn.innerText = "Logging in...";
                 submitBtn.disabled = true;
 
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: customEmail,
                     password: password,
                 });
@@ -159,11 +154,10 @@
                     }, 1200);
                 }
             } else {
-                // ---- REGISTRATION ----
                 submitBtn.innerText = "Registering...";
                 submitBtn.disabled = true;
 
-                const { data, error } = await supabase.auth.signUp({
+                const { data, error } = await supabaseClient.auth.signUp({
                     email: customEmail,
                     password: password,
                 });
@@ -180,15 +174,15 @@
                 }
             }
         }
+        function showSuccess(msg) {
+            successBox.innerText = msg;
+            successBox.style.display = 'block';
 
         function showError(msg) {
             errorBox.innerText = msg;
             errorBox.style.display = 'block';
         }
 
-        function showSuccess(msg) {
-            successBox.innerText = msg;
-            successBox.style.display = 'block';
         }
     </script>
 </body>
