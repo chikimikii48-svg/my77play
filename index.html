@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my77play.in - Login & Register</title>
+    
+    <!-- Supabase v2 CDN Link -->
+    <script src="https://unpkg.com"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #12121c; color: #fff; }
+        
+        .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
+        
+        /* Neon Gaming Header Style */
+        h1 { font-size: 2.6rem; color: #00ffcc; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
+        h2 { margin-bottom: 25px; color: #aaa; font-size: 1rem; font-weight: normal; }
+        
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; margin-bottom: 8px; color: #00ffcc; font-size: 0.85rem; letter-spacing: 0.5px; }
+        input { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid #2c2c3e; background: #252538; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
+        input:focus { border-color: #00ffcc; box-shadow: 0 0 8px rgba(0, 255, 204, 0.2); }
+        
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; background: #00ffcc; color: #12121c; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; box-shadow: 0 4px 12px rgba(0, 255, 204, 0.2); }
+        button:hover { background: #00e6b8; transform: translateY(-1px); }
+        button:disabled { background: #444; color: #888; cursor: not-allowed; box-shadow: none; }
+        
+        .toggle-link { margin-top: 20px; display: block; color: #aaa; cursor: pointer; font-size: 0.9rem; }
+        .toggle-link span { color: #00ffcc; text-decoration: underline; font-weight: bold; }
+        
+        /* Help Section Setup for Admin Panel */
+        .help-section { margin-top: 25px; padding-top: 15px; border-top: 1px solid #2c2c3e; font-size: 0.85rem; color: #777; display: none; }
+        .help-section a { color: #25D366; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; }
+        .help-section a:hover { text-decoration: underline; }
+
+        .error-msg { color: #ff4d4d; margin-bottom: 15px; font-size: 0.9rem; display: none; background: rgba(255, 77, 77, 0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 77, 77, 0.2); }
+        .success-msg { color: #25D366; margin-bottom: 15px; font-size: 0.9rem; display: none; background: rgba(37, 211, 102, 0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(37, 211, 102, 0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>my77play</h1>
+        <h2 id="form-title">Login to Play</h2>
+
+        <!-- Notification Alerts -->
+        <div id="error-box" class="error-msg"></div>
+        <div id="success-box" class="success-msg"></div>
+
+        <form id="auth-form" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="mobile" placeholder="Enter 10 digit number" required pattern="[0-9]{10}">
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" required minlength="6">
+            </div>
+
+            <button type="submit" id="submit-btn">Login</button>
+        </form>
+
+        <!-- Toggle Form Screen -->
+        <div class="toggle-link" id="toggle-auth" onclick="toggleMode()">
+            Don't have an account? <span>Register New Account</span>
+        </div>
+
+        <!-- Help Section (Controlled by Admin Database) -->
+        <div class="help-section" id="help-box">
+            Forgot Password or Need Help? <br>
+            <a href="#" target="_blank" id="whatsapp-link">💬 Contact Admin on WhatsApp</a>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DIRECT SUPABASE CONNECTION (VERIFIED) ---
+        const supabaseUrl = 'https://supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
+        
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // --- 2. MANAGEMENT STATE ---
+        let isLoginMode = true;
+
+        const formTitle = document.getElementById('form-title');
+        const submitBtn = document.getElementById('submit-btn');
+        const toggleAuth = document.getElementById('toggle-auth');
+        const errorBox = document.getElementById('error-box');
+        const successBox = document.getElementById('success-box');
+        const helpBox = document.getElementById('help-box');
+        const whatsappLink = document.getElementById('whatsapp-link');
+
+        // --- 3. DYNAMIC WHATSAPP SYSTEM ---
+        async function loadHelpNumber() {
+            try {
+                const { data, error } = await supabase.from('admin_settings').select('value').eq('key', 'whatsapp').single();
+                if (data && data.value) {
+                    whatsappLink.href = 'https://wa.me' + data.value;
+                    helpBox.style.display = 'block';
+                }
+            } catch (e) {
+                helpBox.style.display = 'none';
+            }
+        }
+        loadHelpNumber();
+
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            errorBox.style.display = 'none';
+            successBox.style.display = 'none';
+            document.getElementById('auth-form').reset();
+            
+            if (isLoginMode) {
+                formTitle.innerText = "Login to Play";
+                submitBtn.innerText = "Login";
+                toggleAuth.innerHTML = "Don't have an account? <span>Register New Account</span>";
+            } else {
+                formTitle.innerText = "Register New Account";
+                submitBtn.innerText = "Register Now";
+                toggleAuth.innerHTML = "Already have an account? <span>Login Here</span>";
+            }
+        }
+
+        // --- 4. CORE CONTROLLER (LOGIN & REGISTER) ---
+        async function handleSubmit(event) {
+            event.preventDefault();
+            errorBox.style.display = 'none';
+            successBox.style.display = 'none';
+
+            const mobile = document.getElementById('mobile').value.trim();
+            const password = document.getElementById('password').value;
+            const customEmail = mobile + '@my77play.com';
+
+            if (isLoginMode) {
+                // ---- LOGIN ----
+                submitBtn.innerText = "Logging in...";
+                submitBtn.disabled = true;
+
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: customEmail,
+                    password: password,
+                });
+
+                if (error) {
+                    if (error.message === "Invalid login credentials") {
+                        showError("गलत मोबाइल नंबर या पासवर्ड!");
+                    } else {
+                        showError(error.message);
+                    }
+                    submitBtn.innerText = "Login";
+                    submitBtn.disabled = false;
+                } else {
+                    showSuccess("लॉगिन सफल! होम पेज लोड हो रहा है...");
+                    setTimeout(() => {
+                        window.location.href = "home.html";
+                    }, 1200);
+                }
+            } else {
+                // ---- REGISTRATION ----
+                submitBtn.innerText = "Registering...";
+                submitBtn.disabled = true;
+
+                const { data, error } = await supabase.auth.signUp({
+                    email: customEmail,
+                    password: password,
+                });
+
+                if (error) {
+                    showError(error.message);
+                    submitBtn.innerText = "Register Now";
+                    submitBtn.disabled = false;
+                } else {
+                    showSuccess("अकाउंट बन गया! अब तुरंत लॉगिन करें।");
+                    setTimeout(() => {
+                        toggleMode();
+                    }, 2000);
+                }
+            }
+        }
+
+        function showError(msg) {
+            errorBox.innerText = msg;
+            errorBox.style.display = 'block';
+        }
+
+        function showSuccess(msg) {
+            successBox.innerText = msg;
+            successBox.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

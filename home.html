@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my77play - Home & Games</title>
+    
+    <!-- Supabase v2 CDN Link -->
+    <script src="https://unpkg.com"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+        body { background: #12121c; color: #fff; padding-bottom: 70px; min-height: 100vh; }
+
+        /* ================= HOME PAGE: HEADER SYSTEM ================= */
+        .home-header { background: linear-gradient(135deg, #1c1c27, #252538); padding: 20px; text-align: center; border-bottom: 2px solid #00ffcc; border-radius: 0 0 20px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .brand-name { font-size: 1.8rem; color: #00ffcc; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 204, 0.3); margin-bottom: 10px; }
+        .balance-card { background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 12px; border: 1px solid #2c2c3e; display: inline-block; min-width: 220px; }
+        .balance-title { font-size: 0.85rem; color: #aaa; text-transform: uppercase; }
+        .balance-amount { font-size: 1.8rem; color: #00ffcc; font-weight: bold; margin-top: 5px; }
+
+        /* Tab Visibility Control */
+        .tab-content { padding: 20px; max-width: 600px; margin: 0 auto; display: none; }
+        .tab-content.active { display: block; }
+
+        /* ================= HOME TAB: 4 GAMES GRID ================= */
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .game-card { background: #1c1c27; border-radius: 16px; border: 1px solid #2c2c3e; overflow: hidden; position: relative; cursor: pointer; transition: 0.3s; aspect-ratio: 1; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .game-card:hover { border-color: #00ffcc; transform: translateY(-3px); }
+        .game-img-box { flex: 1; width: 100%; background-size: cover; background-position: center; position: relative; }
+        
+        /* Premium Gaming Images */
+        .img-casino { background-image: url('https://unsplash.com'); }
+        .img-headtail { background-image: url('https://unsplash.com'); }
+        .img-prediction { background-image: url('https://unsplash.com'); }
+        .img-mines { background-image: url('https://unsplash.com'); }
+        
+        .game-title-bar { background: rgba(28, 28, 39, 0.95); padding: 12px; text-align: center; font-weight: bold; font-size: 0.95rem; border-top: 1px solid #2c2c3e; color: #fff; letter-spacing: 0.5px; }
+
+        /* ================= PROFILE TAB: 91CLUB PREMIUM STYLE ================= */
+        .profile-container { background: linear-gradient(180deg, #1c1c27, #12121c); padding: 20px; border-radius: 16px; border: 1px solid #2c2c3e; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .profile-avatar-box { width: 70px; height: 70px; background: #252538; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 15px auto; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
+        
+        .profile-uid { font-size: 1.3rem; font-weight: bold; color: #00ffcc; letter-spacing: 1px; margin-bottom: 5px; }
+        .profile-phone { font-size: 0.95rem; color: #aaa; margin-bottom: 20px; }
+        
+        /* Inner Balance Display inside Profile */
+        .profile-wallet-card { background: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 12px; border: 1px solid #2c2c3e; margin-bottom: 25px; text-align: left; position: relative; }
+        .wallet-title { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .wallet-amt { font-size: 1.6rem; color: #00ffcc; font-weight: bold; margin-top: 5px; }
+
+        /* Navigation Menu Buttons inside Profile */
+        .profile-menu { background: #1c1c27; border-radius: 12px; border: 1px solid #2c2c3e; overflow: hidden; margin-top: 15px; text-align: left; }
+        .menu-item { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c2c3e; cursor: pointer; font-size: 1rem; color: #eee; transition: 0.2s; text-decoration: none; }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:hover { background: #252538; color: #00ffcc; }
+        
+        .help-item { color: #25D366; font-weight: bold; }
+        .logout-item { color: #ff4d4d; font-weight: bold; }
+        .logout-item:hover { color: #ff3333; background: rgba(255,77,77,0.05); }
+
+        /* ================= FIXED BOTTOM NAV BAR ================= */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #1c1c27; border-top: 2px solid #2c2c3e; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+        .nav-btn { background: none; border: none; color: #888; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; cursor: pointer; width: 45%; height: 100%; gap: 4px; transition: 0.3s; }
+        .nav-btn.active { color: #00ffcc; text-shadow: 0 0 8px rgba(0,255,204,0.2); }
+        .nav-icon { font-size: 1.4rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ================= 1. HOME TAB (GAMES & HEADER) ================= -->
+    <div id="home-tab" class="tab-content active">
+        <!-- Top Wallet Header (Only seen on Home) -->
+        <div class="home-header">
+            <div class="brand-name">my77play</div>
+            <div class="balance-card">
+                <div class="balance-title">💰 Available Balance</div>
+                <div class="balance-amount class-user-balance">₹0.00</div>
+            </div>
+        </div>
+
+        <!-- 4 Games Grid Layout -->
+        <div class="game-grid">
+            <!-- Casino Card -->
+            <div class="game-card" onclick="enterGame('Casino Live')">
+                <div class="game-img-box img-casino"></div>
+                <div class="game-title-bar">Casino Live</div>
+            </div>
+
+            <!-- Head & Tail Card -->
+            <div class="game-card" onclick="enterGame('Head & Tail')">
+                <div class="game-img-box img-headtail"></div>
+                <div class="game-title-bar">Head & Tail</div>
+            </div>
+
+            <!-- Colour Prediction Card -->
+            <div class="game-card" onclick="enterGame('Colour Prediction')">
+                <div class="game-img-box img-prediction"></div>
+                <div class="game-title-bar">Colour Prediction</div>
+            </div>
+
+            <!-- Mines Blast Card -->
+            <div class="game-card" onclick="enterGame('Mines Blast')">
+                <div class="game-img-box img-mines"></div>
+                <div class="game-title-bar">Mines Blast</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 2. PROFILE TAB (91CLUB STYLE) ================= -->
+    <div id="profile-tab" class="tab-content">
+        <div class="profile-container">
+            <!-- Avatar & Auto Generated Constant UID -->
+            <div class="profile-avatar-box">👤</div>
+            <div class="profile-uid" id="profile-uid">UID: Loading...</div>
+            <div class="profile-phone" id="profile-phone">Mobile: Loading...</div>
+
+            <!-- Wallet Balance Display inside Profile -->
+            <div class="profile-wallet-card">
+                <div class="wallet-title">👛 Total Wallet Balance</div>
+                <div class="wallet-amt class-user-balance">₹0.00</div>
+            </div>
+
+            <!-- Action Flow Buttons -->
+            <div class="profile-menu">
+                <div class="menu-item" onclick="openAction('Recharge')">
+                    <span>💳 Recharge Account</span>
+                    <span>➔</span>
+                </div>
+                <div class="menu-item" onclick="openAction('Withdraw')">
+                    <span>🏦 Withdraw Money</span>
+                    <span>➔</span>
+                </div>
+            </div>
+
+            <!-- Support & Session Buttons -->
+            <div class="profile-menu">
+                <a href="#" target="_blank" class="menu-item help-item" id="whatsapp-menu-link" style="display: none;">
+                    <span>🎧 Customer Support (WhatsApp)</span>
+                    <span>➔</span>
+                </a>
+                <div class="menu-item logout-item" onclick="handleLogout()">
+                    <span>🚪 Log Out Account</span>
+                    <span>➔</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= FIXED BOTTOM NAV BAR ================= -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" id="btn-home" onclick="switchTab('home')">
+            <span class="nav-icon">🎮</span>
+            <span>Home</span>
+        </button>
+        <button class="nav-btn" id="btn-profile" onclick="switchTab('profile')">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+        </button>
+    </div>
+
+    <script>
+        // --- 1. SUPABASE CLIENT INITIATION ---
+        const supabaseUrl = 'https://supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // --- 2. SESSION GUARD: FETCH CONSTANT USER DATA ---
+        async function checkUserSession() {
