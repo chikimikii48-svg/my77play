@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Login</title>
-    <!-- Supabase JavaScript Library via unpkg -->
-    <script src="https://unpkg.com"></script>
+    <!-- सुपर्बेस की मुख्य स्क्रिप्ट को सुरक्षित रखने के लिए दूसरा बैकअप CDN लगाया -->
+    <script src="https://cloudflare.com" integrity="sha512-98PbyqFnoGTe05TscYatEwN0OooN3S8yZlRWh1An8Y8Gf411Vb0f9vNOnkM7tXU2vKmqVfS1+I/zY6WJow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
         .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
@@ -52,6 +52,25 @@
     </div>
 
     <script>
+        // --- 1. SUPABASE INITIALIZATION FIRST ---
+        const supabaseUrl = 'https://supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
+
+        // एरर फिक्स: कनेक्शन वैरिएबल को सबसे ऊपर डिफाइन किया ताकि एरर न आए
+        let supabaseClient;
+        try {
+            if (window.supabase && window.supabase.createClient) {
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+            } else if (typeof supabase !== 'undefined' && supabase.createClient) {
+                supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+            } else {
+                console.error("Supabase library not loaded properly.");
+            }
+        } catch (e) {
+            console.error("Initialization error:", e);
+        }
+
+        // --- 2. VARIABLES & STATE ---
         let isLoginMode = true;
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
@@ -61,14 +80,9 @@
         const helpBox = document.getElementById('help-box');
         const whatsappLink = document.getElementById('whatsapp-link');
 
-        // --- 1. SUPABASE FIXED URL & KEY ---
-        const supabaseUrl = 'https://supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
-
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-        // --- 2. DYNAMIC HELP SYSTEM ---
+        // --- 3. DYNAMIC HELP LINK ---
         async function loadHelpNumber() {
+            if (!supabaseClient) return;
             try {
                 const { data } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').maybeSingle();
                 whatsappLink.href = (data && data.value) ? 'https://wa.me' + data.value : 'https://wa.me919999999999';
@@ -80,7 +94,7 @@
         }
         loadHelpNumber();
 
-        // --- 3. TOGGLE WINDOW ---
+        // --- 4. TOGGLE MODE ---
         function toggleMode() {
             isLoginMode = !isLoginMode;
             errorBox.style.display = 'none';
@@ -96,11 +110,16 @@
             }
         }
 
-        // --- 4. INSTANT REGISTER & LOGIN PROCESS ---
+        // --- 5. AUTH LOGIC ---
         async function handleAuth(e) {
             e.preventDefault();
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
+
+            if (!supabaseClient) {
+                showError("Database connection failed! Please refresh the page.");
+                return;
+            }
 
             const mobile = document.getElementById('mobile').value;
             const password = document.getElementById('password').value;
@@ -110,7 +129,6 @@
             if (isLoginMode) {
                 submitBtn.innerText = "Logging in...";
                 
-                // प्लेयर प्रोफाइल से डेटा मैच करना
                 const { data, error } = await supabaseClient
                     .from('players_profile')
                     .select('*')
@@ -122,26 +140,21 @@
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Login";
                 } else {
-                    // पासवर्ड मैच चेक करना
                     if (data.password !== password) {
                         showError("Incorrect Password! Please try again.");
                         submitBtn.disabled = false;
                         submitBtn.innerText = "Login";
                     } else {
-                        // लॉगिन सक्सेसफुल होने पर प्लेयर का नंबर लोकल स्टोरेज में सेव करना
                         localStorage.setItem('my77play_user', mobile);
                         showSuccess("Login Successful! Opening Game...");
-                        
-                        // VERCEL FIX: सीधा पाथ सेट किया ताकि पेज अटके नहीं
                         setTimeout(() => {
-                            window.location.href = window.location.origin + 'home.html'; 
+                            window.location.href = 'home.html'; 
                         }, 1000);
                     }
                 }
             } else {
                 submitBtn.innerText = "Registering...";
                 
-                // 1. चेक करो कि नंबर पहले से तो नहीं है
                 const { data: existingUser } = await supabaseClient
                     .from('players_profile')
                     .select('mobile')
@@ -155,7 +168,6 @@
                     return;
                 }
 
-                // 2. डायरेक्ट डेटाबेस टेबल में एंट्री मारना (पासवर्ड कॉलम के साथ)
                 const fakeId = "player-" + mobile + "-" + Math.floor(Math.random() * 1000);
                 const { error: insertError } = await supabaseClient
                     .from('players_profile')
@@ -182,8 +194,3 @@
 
         function showSuccess(msg) {
             successBox.innerText = msg;
-            successBox.style.display = 'block';
-        }
-    </script>
-</body>
-</html>
