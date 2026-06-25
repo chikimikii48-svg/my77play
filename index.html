@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Login</title>
-    <!-- Supabase Official JS CDN -->
-    <script src="https://jsdelivr.net"></script>
+    <!-- unpkg का इस्तेमाल किया ताकि jsdelivr ब्लॉक होने पर भी साइट तुरंत चले -->
+    <script src="https://unpkg.com"></script>
     <style>
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
         .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
@@ -52,12 +52,7 @@
     </div>
 
     <script>
-        // --- 1. SUPABASE CONNECTION CONFIG ---
-        const supabaseUrl = 'https://supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
-
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+        // --- 1. VARIABLES & STATE INITIALIZATION FIRST ---
         let isLoginMode = true;
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
@@ -67,7 +62,14 @@
         const helpBox = document.getElementById('help-box');
         const whatsappLink = document.getElementById('whatsapp-link');
 
-        // --- 2. HELP DESK ---
+        // --- 2. SUPABASE INITIALIZATION ---
+        const supabaseUrl = 'https://supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
+
+        // unpkg स्क्रिप्ट के लिए सीधा तरीका
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // --- 3. SAFE HELP SYSTEM ---
         async function loadHelpNumber() {
             try {
                 const { data, error } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').single();
@@ -85,7 +87,7 @@
         }
         loadHelpNumber();
 
-        // --- 3. TOGGLE FORMS ---
+        // --- 4. TOGGLE MODE (LOGIN / REGISTER) ---
         function toggleMode() {
             isLoginMode = !isLoginMode;
             errorBox.style.display = 'none';
@@ -101,7 +103,7 @@
             }
         }
 
-        // --- 4. LOGIN / REGISTER PROCESS ---
+        // --- 5. AUTH LOGIC ---
         async function handleAuth(e) {
             e.preventDefault();
             errorBox.style.display = 'none';
