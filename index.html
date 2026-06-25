@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Login</title>
     
-    <!-- पुराना क्लाउडफ्लेयर CDN हटाकर असली Supabase CDN लगाया -->
+    <!-- मुख्य Supabase CDN -->
     <script src="https://jsdelivr.net"></script>
+    <!-- बैकअप CDN (अगर पहला फेल हो जाए तो यह काम करेगा) -->
+    <script src="https://cloudflare.com" integrity="sha512-Ym0bZUp7SctfR6GZREU96C9wAsC0shfV5p786Vb7bFp7M7E9v6E6bO6wUv7VbM1wZJ3k8X==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <style>
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
@@ -54,24 +56,29 @@
     </div>
 
     <script>
-        // --- 1. SUPABASE INITIALIZATION ---
-        // ध्यान दें: यहाँ अपनी असली Supabase URL डालें (जैसे: https://xyz.supabase.co)
+        // --- 1. SUPABASE CONFIGURATION ---
         const supabaseUrl = 'https://supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
 
-        let supabaseClient;
-        try {
-            // CDN लोड होने के बाद 'supabase' ऑब्जेक्ट ग्लोबल उपलब्ध होता है
-            if (typeof supabase !== 'undefined' && supabase.createClient) {
-                supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-            } else {
-                console.error("Supabase library not loaded properly.");
-            }
-        } catch (e) {
-            console.error("Initialization error:", e);
-        }
+        let supabaseClient = null;
 
-        // --- 2. VARIABLES & STATE ---
+        // डेटाबेस कनेक्शन इनिशियलाइज़ करने का सुरक्षित फंक्शन
+        function initSupabase() {
+            try {
+                if (typeof supabase !== 'undefined' && supabase.createClient) {
+                    supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+                } else if (window.supabase && window.supabase.createClient) {
+                    supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                }
+            } catch (e) {
+                console.error("Supabase initialization fell back:", e);
+            }
+        }
+        
+        // तुरंत रन करें
+        initSupabase();
+
+        // --- 2. UI ELEMENTS ---
         let isLoginMode = true;
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
@@ -81,20 +88,21 @@
         const helpBox = document.getElementById('help-box');
         const whatsappLink = document.getElementById('whatsapp-link');
 
-        // एरर मैसेज दिखाने के लिए फंक्शन
         function showError(msg) {
             errorBox.innerText = msg;
             errorBox.style.display = 'block';
+            successBox.style.display = 'none';
         }
 
-        // सक्सेस मैसेज दिखाने के लिए फंक्शन
         function showSuccess(msg) {
             successBox.innerText = msg;
             successBox.style.display = 'block';
+            errorBox.style.display = 'none';
         }
 
-        // --- 3. DYNAMIC HELP LINK ---
+        // --- 3. WHATSAPP HELP LINK ---
         async function loadHelpNumber() {
+            if (!supabaseClient) initSupabase();
             if (!supabaseClient) return;
             try {
                 const { data } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').maybeSingle();
@@ -105,9 +113,10 @@
                 helpBox.style.display = 'block';
             }
         }
-        loadHelpNumber();
+        // थोड़ा डिले देकर लोड करेंगे ताकि CDN को रेडी होने का समय मिले
+        setTimeout(loadHelpNumber, 1000);
 
-        // --- 4. TOGGLE MODE ---
+        // --- 4. TOGGLE LOGIN/REGISTER ---
         function toggleMode() {
             isLoginMode = !isLoginMode;
             errorBox.style.display = 'none';
@@ -123,14 +132,17 @@
             }
         }
 
-        // --- 5. AUTH LOGIC ---
+        // --- 5. CORE LOGIC (LOGIN & REGISTER) ---
         async function handleAuth(e) {
             e.preventDefault();
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
 
+            // अगर पहले कनेक्शन नहीं हुआ था, तो यहाँ दोबारा कोशिश करेगा
+            if (!supabaseClient) initSupabase();
+
             if (!supabaseClient) {
-                showError("Database connection failed! Please refresh the page.");
+                showError("Database connection failed! Please refresh the page or check your internet connection.");
                 return;
             }
 
@@ -148,8 +160,12 @@
                     .eq('mobile', mobile)
                     .maybeSingle();
 
-                if (error || !data) {
-                    showError("Mobile number not found! Please register first.");
+                if (error) {
+                    showError("Error connecting to database. Please try again.");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Login";
+                } else if (!data) {
+                    showError("Mobile number not registered! Please create an account.");
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Login";
                 } else {
@@ -158,16 +174,22 @@
                         submitBtn.disabled = false;
                         submitBtn.innerText = "Login";
                     } else {
+                        // यूजर सेशन को ब्राउज़र मेमोरी में सेव करना
                         localStorage.setItem('my77play_user', mobile);
-                        showSuccess("Login Successful! Opening Game...");
-                        // यहाँ अपनी गेम स्क्रीन या डैशबोर्ड का रीडायरेक्ट कोड जोड़ सकते हैं
+                        showSuccess("Login Successful! Going to Home...");
+                        
+                        // सीधा home.html पर रीडायरेक्ट करना
+                        setTimeout(() => {
+                            window.location.href = 'home.html';
+                        }, 1200);
                     }
                 }
             } else {
-                // रजिस्ट्रेशन कोड यहाँ आएगा (अगर आपने आगे लिखा था)
-                submitBtn.disabled = false;
-            }
-        }
-    </script>
-</body>
-</html>
+                submitBtn.innerText = "Registering...";
+                
+                // चेक करें कि यूजर पहले से तो रजिस्टर्ड नहीं है
+                const { data: existingUser, error: checkError } = await supabaseClient
+                    .from('players_profile')
+                    .select('mobile')
+                    .eq('mobile', mobile)
+                    .maybeSingle();
