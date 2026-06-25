@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Login</title>
-    <!-- Supabase की ऑफिशियल लाइब्रेरी जोड़ना ज़रूरी है -->
+    <!-- Supabase Official JS CDN -->
     <script src="https://jsdelivr.net"></script>
     <style>
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
@@ -32,7 +32,6 @@
         <h1>my77play</h1>
         <h2 id="form-title">Login to Play</h2>
 
-        <!-- Alerts -->
         <div id="error-box" class="error-msg"></div>
         <div id="success-box" class="success-msg"></div>
 
@@ -53,15 +52,12 @@
     </div>
 
     <script>
-        // --- 1. SUPABASE CONNECTION (FIXED & SECURE) ---
-        // ⚠️ यहाँ अपनी असली Supabase URL पेस्ट करो (Dashboard -> Project Settings -> API से मिलेगी)
-        const supabaseUrl = 'https://ffejvfluwezmbrfxmsjq.supabase.co'; 
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
+        // --- 1. SUPABASE CONNECTION CONFIG ---
+        const supabaseUrl = 'https://supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
 
-        // कनेक्शन को एकदम सही तरीके से शुरू किया
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // --- 2. ELEMENTS & STATE ---
         let isLoginMode = true;
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
@@ -71,26 +67,29 @@
         const helpBox = document.getElementById('help-box');
         const whatsappLink = document.getElementById('whatsapp-link');
 
-        // --- 3. DYNAMIC WHATSAPP SYSTEM ---
+        // --- 2. HELP DESK ---
         async function loadHelpNumber() {
             try {
                 const { data, error } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').single();
                 if (data && data.value) {
                     whatsappLink.href = 'https://wa.me' + data.value;
                     helpBox.style.display = 'block';
+                } else {
+                    whatsappLink.href = 'https://wa.me918696304191';
+                    helpBox.style.display = 'block';
                 }
             } catch (err) {
-                console.log("WhatsApp settings load failed");
+                whatsappLink.href = 'https://wa.me918696304191';
+                helpBox.style.display = 'block';
             }
         }
         loadHelpNumber();
 
-        // --- 4. TOGGLE MODE (LOGIN / REGISTER) ---
+        // --- 3. TOGGLE FORMS ---
         function toggleMode() {
             isLoginMode = !isLoginMode;
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
-            
             if (isLoginMode) {
                 formTitle.innerText = "Login to Play";
                 submitBtn.innerText = "Login";
@@ -102,7 +101,7 @@
             }
         }
 
-        // --- 5. AUTH LOGIC (LOGIN / SIGNUP) ---
+        // --- 4. LOGIN / REGISTER PROCESS ---
         async function handleAuth(e) {
             e.preventDefault();
             errorBox.style.display = 'none';
@@ -126,10 +125,10 @@
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Login";
                 } else {
-                    showSuccess("Login Successful! Redirecting...");
+                    showSuccess("Login Successful! Opening Game...");
                     setTimeout(() => {
-                        window.location.href = '/dashboard'; // लॉगिन के बाद गेम पेज पर भेजने के लिए
-                    }, 1200);
+                        window.location.href = '/home.html'; 
+                    }, 1000);
                 }
             } else {
                 submitBtn.innerText = "Registering...";
@@ -143,7 +142,7 @@
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Register";
                 } else {
-                    showSuccess("Registration Successful! Please login now.");
+                    showSuccess("Registration Successful! Please Login Now.");
                     toggleMode();
                     submitBtn.disabled = false;
                 }
