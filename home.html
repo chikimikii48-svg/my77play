@@ -3,167 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>my77play - Home & Games</title>
-    
-    <!-- Supabase v2 CDN Link -->
+    <title>my77play - Game Dashboard</title>
     <script src="https://unpkg.com"></script>
-
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
-        body { background: #12121c; color: #fff; padding-bottom: 70px; min-height: 100vh; }
-
-        /* ================= HOME PAGE: HEADER SYSTEM ================= */
-        .home-header { background: linear-gradient(135deg, #1c1c27, #252538); padding: 20px; text-align: center; border-bottom: 2px solid #00ffcc; border-radius: 0 0 20px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .brand-name { font-size: 1.8rem; color: #00ffcc; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 204, 0.3); margin-bottom: 10px; }
-        .balance-card { background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 12px; border: 1px solid #2c2c3e; display: inline-block; min-width: 220px; }
-        .balance-title { font-size: 0.85rem; color: #aaa; text-transform: uppercase; }
-        .balance-amount { font-size: 1.8rem; color: #00ffcc; font-weight: bold; margin-top: 5px; }
-
-        /* Tab Visibility Control */
-        .tab-content { padding: 20px; max-width: 600px; margin: 0 auto; display: none; }
-        .tab-content.active { display: block; }
-
-        /* ================= HOME TAB: 4 GAMES GRID ================= */
-        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .game-card { background: #1c1c27; border-radius: 16px; border: 1px solid #2c2c3e; overflow: hidden; position: relative; cursor: pointer; transition: 0.3s; aspect-ratio: 1; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .game-card:hover { border-color: #00ffcc; transform: translateY(-3px); }
-        .game-img-box { flex: 1; width: 100%; background-size: cover; background-position: center; position: relative; }
-        
-        /* Premium Gaming Images */
-        .img-casino { background-image: url('https://unsplash.com'); }
-        .img-headtail { background-image: url('https://unsplash.com'); }
-        .img-prediction { background-image: url('https://unsplash.com'); }
-        .img-mines { background-image: url('https://unsplash.com'); }
-        
-        .game-title-bar { background: rgba(28, 28, 39, 0.95); padding: 12px; text-align: center; font-weight: bold; font-size: 0.95rem; border-top: 1px solid #2c2c3e; color: #fff; letter-spacing: 0.5px; }
-
-        /* ================= PROFILE TAB: 91CLUB PREMIUM STYLE ================= */
-        .profile-container { background: linear-gradient(180deg, #1c1c27, #12121c); padding: 20px; border-radius: 16px; border: 1px solid #2c2c3e; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
-        .profile-avatar-box { width: 70px; height: 70px; background: #252538; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 15px auto; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
-        
-        .profile-uid { font-size: 1.3rem; font-weight: bold; color: #00ffcc; letter-spacing: 1px; margin-bottom: 5px; }
-        .profile-phone { font-size: 0.95rem; color: #aaa; margin-bottom: 20px; }
-        
-        /* Inner Balance Display inside Profile */
-        .profile-wallet-card { background: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 12px; border: 1px solid #2c2c3e; margin-bottom: 25px; text-align: left; position: relative; }
-        .wallet-title { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-        .wallet-amt { font-size: 1.6rem; color: #00ffcc; font-weight: bold; margin-top: 5px; }
-
-        /* Navigation Menu Buttons inside Profile */
-        .profile-menu { background: #1c1c27; border-radius: 12px; border: 1px solid #2c2c3e; overflow: hidden; margin-top: 15px; text-align: left; }
-        .menu-item { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c2c3e; cursor: pointer; font-size: 1rem; color: #eee; transition: 0.2s; text-decoration: none; }
-        .menu-item:last-child { border-bottom: none; }
-        .menu-item:hover { background: #252538; color: #00ffcc; }
-        
-        .help-item { color: #25D366; font-weight: bold; }
-        .logout-item { color: #ff4d4d; font-weight: bold; }
-        .logout-item:hover { color: #ff3333; background: rgba(255,77,77,0.05); }
-
-        /* ================= FIXED BOTTOM NAV BAR ================= */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #1c1c27; border-top: 2px solid #2c2c3e; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
-        .nav-btn { background: none; border: none; color: #888; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; cursor: pointer; width: 45%; height: 100%; gap: 4px; transition: 0.3s; }
-        .nav-btn.active { color: #00ffcc; text-shadow: 0 0 8px rgba(0,255,204,0.2); }
-        .nav-icon { font-size: 1.4rem; }
+        body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .game-container { background: #1c1c27; padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); border: 1px solid #00ffcc; text-align: center; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c2c3e; padding-bottom: 15px; margin-bottom: 20px; }
+        .logo { font-size: 1.8rem; color: #00ffcc; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .wallet { background: #2c2c3e; padding: 8px 15px; border-radius: 8px; border: 1px solid #444; font-weight: bold; }
+        .wallet span { color: #00ffcc; }
+        .timer-section { background: #151522; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #2a2a3a; }
+        .timer-title { font-size: 1rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
+        .countdown { font-size: 3rem; color: #ff4d4d; font-weight: bold; font-family: monospace; text-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
+        .game-id { font-size: 0.9rem; color: #777; margin-top: 5px; }
+        .button-section { display: flex; justify-content: space-between; gap: 10px; margin-top: 25px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; color: #fff; }
+        .btn-green { background: #25D366; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
+        .btn-green:hover { background: #1ebd54; }
+        .btn-violet { background: #9b51e0; box-shadow: 0 4px 15px rgba(155, 81, 224, 0.3); }
+        .btn-violet:hover { background: #823ac7; }
+        .btn-red { background: #ff4d4d; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3); }
+        .btn-red:hover { background: #e03e3e; }
+        .logout-btn { margin-top: 30px; background: none; border: 1px solid #555; color: #aaa; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: 0.3s; }
+        .logout-btn:hover { border-color: #ff4d4d; color: #ff4d4d; }
     </style>
 </head>
 <body>
 
-    <!-- ================= 1. HOME TAB (GAMES & HEADER) ================= -->
-    <div id="home-tab" class="tab-content active">
-        <!-- Top Wallet Header (Only seen on Home) -->
-        <div class="home-header">
-            <div class="brand-name">my77play</div>
-            <div class="balance-card">
-                <div class="balance-title">💰 Available Balance</div>
-                <div class="balance-amount class-user-balance">₹0.00</div>
-            </div>
+    <div class="game-container">
+        <!-- टॉप हेडर -->
+        <div class="header">
+            <div class="logo">my77play</div>
+            <div class="wallet">💰 Bal: <span id="balance">₹0.00</span></div>
         </div>
 
-        <!-- 4 Games Grid Layout -->
-        <div class="game-grid">
-            <!-- Casino Card -->
-            <div class="game-card" onclick="enterGame('Casino Live')">
-                <div class="game-img-box img-casino"></div>
-                <div class="game-title-bar">Casino Live</div>
-            </div>
-
-            <!-- Head & Tail Card -->
-            <div class="game-card" onclick="enterGame('Head & Tail')">
-                <div class="game-img-box img-headtail"></div>
-                <div class="game-title-bar">Head & Tail</div>
-            </div>
-
-            <!-- Colour Prediction Card -->
-            <div class="game-card" onclick="enterGame('Colour Prediction')">
-                <div class="game-img-box img-prediction"></div>
-                <div class="game-title-bar">Colour Prediction</div>
-            </div>
-
-            <!-- Mines Blast Card -->
-            <div class="game-card" onclick="enterGame('Mines Blast')">
-                <div class="game-img-box img-mines"></div>
-                <div class="game-title-bar">Mines Blast</div>
-            </div>
+        <!-- लाइव काउंटडाउन टाइमर सेक्शन -->
+        <div class="timer-section">
+            <div class="timer-title">Wingo 1-Min Countdown</div>
+            <div id="countdown" class="countdown">00:60</div>
+            <div id="period-id" class="game-id">Period: Loading...</div>
         </div>
-    </div>
 
-    <!-- ================= 2. PROFILE TAB (91CLUB STYLE) ================= -->
-    <div id="profile-tab" class="tab-content">
-        <div class="profile-container">
-            <!-- Avatar & Auto Generated Constant UID -->
-            <div class="profile-avatar-box">👤</div>
-            <div class="profile-uid" id="profile-uid">UID: Loading...</div>
-            <div class="profile-phone" id="profile-phone">Mobile: Loading...</div>
-
-            <!-- Wallet Balance Display inside Profile -->
-            <div class="profile-wallet-card">
-                <div class="wallet-title">👛 Total Wallet Balance</div>
-                <div class="wallet-amt class-user-balance">₹0.00</div>
-            </div>
-
-            <!-- Action Flow Buttons -->
-            <div class="profile-menu">
-                <div class="menu-item" onclick="openAction('Recharge')">
-                    <span>💳 Recharge Account</span>
-                    <span>➔</span>
-                </div>
-                <div class="menu-item" onclick="openAction('Withdraw')">
-                    <span>🏦 Withdraw Money</span>
-                    <span>➔</span>
-                </div>
-            </div>
-
-            <!-- Support & Session Buttons -->
-            <div class="profile-menu">
-                <a href="#" target="_blank" class="menu-item help-item" id="whatsapp-menu-link" style="display: none;">
-                    <span>🎧 Customer Support (WhatsApp)</span>
-                    <span>➔</span>
-                </a>
-                <div class="menu-item logout-item" onclick="handleLogout()">
-                    <span>🚪 Log Out Account</span>
-                    <span>➔</span>
-                </div>
-            </div>
+        <!-- कलर प्रेडिक्शन बटन -->
+        <h3>Select Color to Bet</h3>
+        <div class="button-section">
+            <button class="btn btn-green" onclick="placeBet('Green')">Green</button>
+            <button class="btn btn-violet" onclick="placeBet('Violet')">Violet</button>
+            <button class="btn btn-red" onclick="placeBet('Red')">Red</button>
         </div>
-    </div>
 
-    <!-- ================= FIXED BOTTOM NAV BAR ================= -->
-    <div class="bottom-nav">
-        <button class="nav-btn active" id="btn-home" onclick="switchTab('home')">
-            <span class="nav-icon">🎮</span>
-            <span>Home</span>
-        </button>
-        <button class="nav-btn" id="btn-profile" onclick="switchTab('profile')">
-            <span class="nav-icon">👤</span>
-            <span>Profile</span>
-        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <script>
-        // --- 1. SUPABASE CLIENT INITIATION ---
+        // --- सुपर्बेस कनेक्शन ---
         const supabaseUrl = 'https://supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // --- 2. SESSION GUARD: FETCH CONSTANT USER DATA ---
-        async function checkUserSession() {
+        // प्लेयर वेरिफिकेशन चेक
+        const activeUser = localStorage.getItem('my77play_user');
+        if (!activeUser) {
+            window.location.href = '/';
+        }
+
+        // --- लाइव वॉलेट बैलेंस लोड करना ---
+        async function loadPlayerWallet() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('players_profile')
+                    .select('wallet_balance')
+                    .eq('mobile', activeUser)
+                    .maybeSingle();
+                
+                if (data) {
+                    document.getElementById('balance').innerText = '₹' + parseFloat(data.wallet_balance).toFixed(2);
+                }
+            } catch (err) {
+                console.log("Wallet load issue");
+            }
+        }
+        loadPlayerWallet();
+
+        // --- ऑटोमैटिक 1-मिनट लाइव टाइमर सिस्टम ---
+        function startTimer() {
+            setInterval(() => {
+                const now = new Date();
+                const seconds = now.getSeconds();
+                const remainingSeconds = 60 - seconds;
+                
+                // पीरियड आईडी जनरेट करना (तारीख + मिनट के हिसाब से)
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hour = String(now.getHours()).padStart(2, '0');
+                const minute = String(now.getMinutes()).padStart(2, '0');
+                const periodId = ${year}${month}${day}${hour}${minute};
+                
+                document.getElementById('period-id').innerText = "Period: " + periodId;
+
+                // स्क्रीन पर टाइमर फॉर्मेट सेट करना
+                const displaySeconds = remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds;
+                const timerElement = document.getElementById('countdown');
+                timerElement.innerText = 00:${displaySeconds};
+
+                // आखिरी 5 सेकंड में बटन डिसेबल (लॉक) करना
+                if (remainingSeconds <= 5) {
+                    timerElement.style.color = '#ff4d4d';
+                    toggleButtons(true);
+                } else {
+                    timerElement.style.color = '#00ffcc';
+                    toggleButtons(false);
+                }
+            }, 1000);
+        }
+        startTimer();
+
+        function toggleButtons(disabled) {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => btn.disabled = disabled);
+        }
+
+        // --- बेट लगाने का फंक्शन ---
+        function placeBet(color) {
+            alert(You selected ${color}! Placing bet...);
+            // बेटिंग डेटाबेस का काम हम अगले स्टेप में जोड़ेंगे
+        }
+
+        // लॉगआउट फंक्शन
+        function logout() {
+            localStorage.removeItem('my77play_user');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
