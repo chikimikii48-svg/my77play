@@ -14,7 +14,7 @@
         
         .main-container { width: 100%; max-width: 420px; padding: 20px; }
         
-        /* टॉप यूजर और वॉलेट हेडर */
+        /* टॉप यूजर और वॉलेट हेडर (यह गेम्स और प्रोफाइल दोनों टैब में ऊपर दिखेगा) */
         .user-header { background: #1c1c27; padding: 15px; border-radius: 16px; border: 1px solid #00ffcc; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,255,204,0.1); }
         .user-info .user-phone { font-size: 1.1rem; font-weight: bold; color: #fff; }
         .user-info .user-id { font-size: 0.85rem; color: #00ffcc; margin-top: 3px; font-family: monospace; }
@@ -42,8 +42,8 @@
         .menu-btn.logout { border-color: #ff4d4d; color: #ff4d4d; }
         .menu-btn.logout:hover { background: rgba(255,77,77,0.1); }
 
-        /* बॉटम नेविगेशन बार */
-        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: #1c1c27; border-top: 1px solid #2c2c3e; display: flex; height: 65px; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); }
+        /* बॉटम फिक्स्ड नेविगेशन बार */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: #1c1c27; border-top: 1px solid #2c2c3e; display: flex; height: 65px; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: 0.3s; }
         .nav-item.active { color: #00ffcc; }
         .nav-icon { font-size: 1.4rem; margin-bottom: 2px; }
@@ -53,7 +53,7 @@
 
     <div class="main-container">
         
-        <!-- टॉप यूजर हेडर (हमेशा दिखेगा) -->
+        <!-- टॉप यूजर हेडर (यह गेम्स और प्रोफाइल दोनों टैब में ऊपर हमेशा टिका रहेगा) -->
         <div class="user-header">
             <div class="user-info">
                 <div class="user-phone" id="user-phone">Loading...</div>
@@ -65,11 +65,11 @@
             </div>
         </div>
 
-        <!-- 1. गेम्स स्क्रीन टैब -->
+        <!-- 1. GAMES SCREEN TAB -->
         <div id="games-section">
             <h2>All Games</h2>
             <div class="games-grid">
-                <!-- गेम 1: कलर प्रेडिक्शन (चालू है) -->
+                <!-- गेम 1: कलर प्रेडिक्शन -->
                 <div class="game-card">
                     <div>
                         <div class="game-icon">🎨</div>
@@ -107,10 +107,11 @@
             </div>
         </div>
 
-        <!-- 2. प्रोफाइल स्क्रीन टैब -->
+        <!-- 2. PROFILE SCREEN TAB -->
         <div id="profile-section">
             <h2>My Profile</h2>
             <div class="profile-menu">
+                <!-- आपके कहे अनुसार प्रोफाइल के सभी बटन सेट कर दिए हैं -->
                 <button class="menu-btn" onclick="handleAction('Recharge')">🟢 Deposit / Recharge</button>
                 <button class="menu-btn" onclick="handleAction('Withdrawal')">🔴 Withdrawal Money</button>
                 <button class="menu-btn" onclick="handleAction('Help')">💬 Customer Support</button>
@@ -136,7 +137,7 @@
         // --- ऑथेंटिकेशन और सुरक्षा चेक सबसे ऊपर ---
         const activeUser = localStorage.getItem('my77play_user');
         if (!activeUser) {
-            window.location.href = 'index.html'; // अगर लॉगिन नहीं है तो सीधे बाहर भेजेगा
+            window.location.href = 'index.html'; 
         } else {
             document.getElementById('user-phone').innerText = "+91 " + activeUser;
         }
@@ -146,51 +147,45 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // --- यूजर का लाइव डेटा (बैलेंस और रैंडम ID) लोड करना ---
+        // --- यूजर का लाइव डेटा लोड करना (ID और बैलेंस सुप्रबेस से कनेक्टेड) ---
         async function loadUserData() {
             if (!supabaseClient || !activeUser) return;
             try {
                 const { data, error } = await supabaseClient
-                    .from('players_profile')
-                    .select('wallet_balance')
+                    .from('user') 
+                    .select('wallet_balance, player_id')
                     .eq('mobile', activeUser)
                     .maybeSingle();
                 
                 if (data) {
-                    // बैलेंस अपडेट करें
+                    // लाइव बैलेंस अपडेट (एडमिन पैनल से चेंज करते ही यहाँ भी अपडेट हो जाएगा)
                     document.getElementById('main-balance').innerText = '₹' + parseFloat(data.wallet_balance || 0).toFixed(2);
+                    
+                    // अगर डेटाबेस में प्लेयर आईडी है तो वही दिखाए, नहीं तो लोकलस्टोरेज वाली दिखाए
+                    if (data.player_id) {
+                        document.getElementById('user-permanent-id').innerText = "ID: " + data.player_id;
+                        localStorage.setItem('my77play_id', data.player_id);
+                    }
                 }
 
-                // 8 अंकों की रैंडम ID जनरेट करना (1 से 9 के बीच अंकों के साथ परमानेंट जैसी दिखने वाली)
+                // अगर सुप्रबेस लोड होने में डिले हो तो लोकल बैकअप से आईडी तुरंत दिखा दे
                 let savedId = localStorage.getItem('my77play_id');
                 if (!savedId) {
-                    savedId = Math.floor(10000000 + Math.random() * 90000000); // 8 अंकों की ID
+                    savedId = Math.floor(10000000 + Math.random() * 90000000); 
                     localStorage.setItem('my77play_id', savedId);
                 }
-                document.getElementById('user-permanent-id').innerText = "ID: " + savedId;
+                if (document.getElementById('user-permanent-id').innerText.includes('---')) {
+                    document.getElementById('user-permanent-id').innerText = "ID: " + savedId;
+                }
 
             } catch (err) {
                 console.log("Error loading user details:", err);
             }
         }
+        
+        // पेज खुलते ही और हर कुछ सेकंड में डेटा लोड करेगा ताकि लाइव एडमिन अपडेट्स दिखें
         loadUserData();
+        setInterval(loadUserData, 5000); 
 
-        // --- टैब बदलने का लॉजिक (Games <-> Profile) ---
+        // --- टैब बदलने का लॉजिक ---
         function switchTab(tabName) {
-            const gamesSec = document.getElementById('games-section');
-            const profileSec = document.getElementById('profile-section');
-            const navGames = document.getElementById('nav-games');
-            const navProfile = document.getElementById('nav-profile');
-
-            if (tabName === 'games') {
-                gamesSec.style.display = 'block';
-                profileSec.style.display = 'none';
-                navGames.classList.add('active');
-                navProfile.classList.remove('active');
-            } else {
-                gamesSec.style.display = 'none';
-                profileSec.style.display = 'block';
-                navGames.classList.remove('active');
-                navProfile.classList.add('active');
-            }
-        }
