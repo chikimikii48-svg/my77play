@@ -52,7 +52,6 @@
     </div>
 
     <script>
-        // --- 1. SETTINGS & STYLING ---
         let isLoginMode = true;
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
@@ -62,15 +61,16 @@
         const helpBox = document.getElementById('help-box');
         const whatsappLink = document.getElementById('whatsapp-link');
 
-        const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
+        // --- 1. SUPABASE FIXED URL & KEY ---
+        const supabaseUrl = 'https://supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
 
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // --- 2. SUPPORT LINK ---
+        // --- 2. DYNAMIC HELP SYSTEM ---
         async function loadHelpNumber() {
             try {
-                const { data } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').single();
+                const { data } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').maybeSingle();
                 whatsappLink.href = (data && data.value) ? 'https://wa.me' + data.value : 'https://wa.me919999999999';
                 helpBox.style.display = 'block';
             } catch (err) {
@@ -96,7 +96,7 @@
             }
         }
 
-        // --- 4. INSTANT BYPASS REGISTER & LOGIN ---
+        // --- 4. INSTANT REGISTER & LOGIN PROCESS ---
         async function handleAuth(e) {
             e.preventDefault();
             errorBox.style.display = 'none';
@@ -110,57 +110,67 @@
             if (isLoginMode) {
                 submitBtn.innerText = "Logging in...";
                 
-                // डायरेक्ट प्लेयर्स प्रोफाइल से मैच करना (सुपरफास्ट रिस्पांस)
+                // प्लेयर प्रोफाइल से डेटा मैच करना
                 const { data, error } = await supabaseClient
                     .from('players_profile')
                     .select('*')
                     .eq('mobile', mobile)
-                    .single();
+                    .maybeSingle();
 
                 if (error || !data) {
-                    showError("Account not found! Please register first.");
+                    showError("Mobile number not found! Please register first.");
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Login";
                 } else {
-                    // पासवर्ड मैच चेक (सप्लीमेंट्री सिक्योरिटी विदाउट लैग)
-                    localStorage.setItem('my77play_user', mobile);
-                    showSuccess("Login Successful! Opening Game...");
-                    setTimeout(() => {
-                        window.location.href = '/home.html'; 
-                    }, 1000);
+                    // पासवर्ड मैच चेक करना
+                    if (data.password !== password) {
+                        showError("Incorrect Password! Please try again.");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Login";
+                    } else {
+                        // लॉगिन सक्सेसफुल होने पर प्लेयर का नंबर लोकल स्टोरेज में सेव करना
+                        localStorage.setItem('my77play_user', mobile);
+                        showSuccess("Login Successful! Opening Game...");
+                        
+                        // VERCEL FIX: सीधा पाथ सेट किया ताकि पेज अटके नहीं
+                        setTimeout(() => {
+                            window.location.href = window.location.origin + '/home.html'; 
+                        }, 1000);
+                    }
                 }
             } else {
                 submitBtn.innerText = "Registering...";
                 
-                // 1. डुप्लीकेट नंबर चेक
-                const { data: checkNum } = await supabaseClient
+                // 1. चेक करो कि नंबर पहले से तो नहीं है
+                const { data: existingUser } = await supabaseClient
                     .from('players_profile')
                     .select('mobile')
                     .eq('mobile', mobile)
                     .maybeSingle();
 
-                if (checkNum) {
+                if (existingUser) {
                     showError("Mobile number already registered!");
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Register";
                     return;
                 }
 
-                // 2. डायरेक्ट डेटाबेस टेबल राइट ऑपरेशन (बिना किसी ईमेल अटके 1 सेकंड में)
-                const fakeId = "00000000-0000-0000-0000-" + mobile; // यूनिक आईडी जनरेशन बाईपास
+                // 2. डायरेक्ट डेटाबेस टेबल में एंट्री मारना (पासवर्ड कॉलम के साथ)
+                const fakeId = "player-" + mobile + "-" + Math.floor(Math.random() * 1000);
                 const { error: insertError } = await supabaseClient
                     .from('players_profile')
-                    .insert([{ id: fakeId, mobile: mobile, wallet_balance: 0.00 }]);
+                    .insert([{ id: fakeId, mobile: mobile, password: password, wallet_balance: 0.00 }]);
 
                 if (insertError) {
-                    showError("Registration Failed! Try again.");
+                    showError("Registration Failed! Please try again.");
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Register";
                 } else {
-                    localStorage.setItem('my77play_user', mobile);
                     showSuccess("Registration Successful! Please Login Now.");
-                    toggleMode();
-                    submitBtn.disabled = false;
+                    setTimeout(() => {
+                        toggleMode();
+                        submitBtn.disabled = false;
+                    }, 1000);
                 }
             }
         }
