@@ -86,6 +86,7 @@
             const password = document.getElementById('password').value;
             submitBtn.disabled = true;
 
+            // 8 अंकों की रैंडम परमानेंट आईडी जेनरेट करना
             const randomId = Math.floor(10000000 + Math.random() * 90000000);
 
             if (isLoginMode) {
@@ -96,23 +97,28 @@
                         if (data) {
                             if (data.password === password) {
                                 localStorage.setItem('my77play_user', mobile);
-                                if(data.player_id) localStorage.setItem('my77play_id', data.player_id);
-                                showSuccess("Successful Login!");
-                                setTimeout(() => { window.location.href = 'home.html'; }, 1000);
+                                if(data.player_id) {
+                                    localStorage.setItem('my77play_id', data.player_id);
+                                } else {
+                                    // यदि डेटाबेस में आईडी न हो तो नई आईडी बनाकर सेव कर दे
+                                    localStorage.setItem('my77play_id', randomId);
+                                    await supabaseClient.from('user').update({ player_id: randomId }).eq('mobile', mobile);
+                                }
+                                window.location.href = 'home.html';
                                 return;
                             } else {
                                 showError("गलत पासवर्ड!"); submitBtn.disabled = false; submitBtn.innerText = "Login"; return;
                             }
                         } else {
-                            showError("इस नंबर से कोई डिटेल उपलब्ध नहीं है! कृपया पहले नया अकाउंट बनाएं।");
+                            // बदलाव 1: नया नंबर सीधे लॉगिन करने की कोशिश करे तो यह मैसेज दिखेगा
+                            showError("आप मौजूद यूजर नहीं हो, कृपया पहले रजिस्टर करो।");
                             submitBtn.disabled = false; submitBtn.innerText = "Login"; return;
                         }
                     } catch(err) {}
                 }
-                // पुराने की तरह फ़ास्ट फॉलबैक एंट्री
                 localStorage.setItem('my77play_user', mobile);
-                showSuccess("Successful Login!");
-                setTimeout(() => { window.location.href = 'home.html'; }, 1000);
+                localStorage.setItem('my77play_id', randomId);
+                window.location.href = 'home.html';
             } else {
                 submitBtn.innerText = "Registering...";
                 if (supabaseClient) {
@@ -122,13 +128,13 @@
                             showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
                             submitBtn.disabled = false; submitBtn.innerText = "Register"; return;
                         }
+                        // रजिस्ट्रेशन के वक्त डेटाबेस में बैलेंस 0 और आईडी सेव करना
                         await supabaseClient.from('user').insert([{ mobile: mobile, password: password, player_id: randomId, wallet_balance: 0 }]);
                     } catch(err) {}
                 }
-                showSuccess("Successful Register!");
-                localStorage.setItem('my77play_user', mobile);
-                localStorage.setItem('my77play_id', randomId); 
-                setTimeout(() => { window.location.href = 'home.html'; }, 1000);
+                // बदलाव 2: रजिस्ट्रेशन सफल होने पर यह मैसेज दिखेगा और लॉगिन स्क्रीन पर भेज देगा
+                showSuccess("Registration Successfully! Login Now");
+                setTimeout(() => { toggleMode(); submitBtn.disabled = false; }, 1200);
             }
         }
         whatsappLink.href = 'https://wa.me'; helpBox.style.display = 'block';
