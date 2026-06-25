@@ -112,72 +112,92 @@
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
 
+            if (!supabaseClient) initSupabase();
+            if (!supabaseClient) {
+                showError("डेटाबेस कनेक्शन फेल! कृपया पेज रिफ्रेश करें।");
+                submitBtn.disabled = false;
+                return;
+            }
+
             const mobile = document.getElementById('mobile').value;
             const password = document.getElementById('password').value;
             submitBtn.disabled = true;
 
-            const randomId = Math.floor(10000000 + Math.random() * 90000000);
-
             if (isLoginMode) {
                 submitBtn.innerText = "Logging in...";
                 
-                if (supabaseClient) {
-                    try {
-                        // FIX: 'players_profile' की जगह 'user' टेबल से डेटा चेक किया
-                        const { data, error } = await supabaseClient
-                            .from('user')
-                            .select('*')
-                            .eq('mobile', mobile)
-                            .maybeSingle();
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('user')
+                        .select('*')
+                        .eq('mobile', mobile)
+                        .maybeSingle();
 
-                        if (!error && data) {
-                            if (data.password === password) {
-                                localStorage.setItem('my77play_user', mobile);
-                                if(data.player_id) localStorage.setItem('my77play_id', data.player_id);
-                                showSuccess("लॉगिन सफल! होम पेज पर जा रहे हैं...");
-                                setTimeout(() => { window.location.href = 'home.html'; }, 800);
-                                return;
-                            } else {
-                                showError("गलत पासवर्ड! कृपया दोबारा जांचें।");
-                                submitBtn.disabled = false;
-                                submitBtn.innerText = "Login";
-                                return;
-                            }
-                        } else if (!data) {
-                            showError("इस नंबर से कोई डिटेल उपलब्ध नहीं है! कृपया पहले नया अकाउंट बनाएं।");
-                            submitBtn.disabled = false;
-                            submitBtn.innerText = "Login";
-                            return;
+                    if (error) {
+                        showError("सर्वर एरर! कृपया दोबारा प्रयास करें।");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Login";
+                        return;
+                    }
+
+                    if (!data) {
+                        showError("इस नंबर से कोई डिटेल उपलब्ध नहीं है! कृपया पहले नया अकाउंट बनाएं।");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Login";
+                        return;
+                    }
+
+                    if (data.password === password) {
+                        localStorage.setItem('my77play_user', mobile);
+                        // डेटाबेस से परमानेंट आईडी निकालकर लोकलस्टोरेज में रखना ताकि होम पेज पर सेम आईडी दिखे
+                        if(data.player_id) {
+                            localStorage.setItem('my77play_id', data.player_id);
                         }
-                    } catch(err) { console.log(err); }
-                }
+                        // सुधार: सिर्फ 'Successful Login!' मैसेज दिखेगा
+                        showSuccess("Successful Login!");
+                        setTimeout(() => { window.location.href = 'home.html'; }, 1000);
+                    } else {
+                        showError("गलत पासवर्ड! कृपया दोबारा जांचें।");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Login";
+                    }
 
-                // फॉलबैक फ़ास्ट एंट्री
-                localStorage.setItem('my77play_user', mobile);
-                showSuccess("लॉगिन सफल! होम पेज पर जा रहे हैं...");
-                setTimeout(() => { window.location.href = 'home.html'; }, 800);
+                } catch(err) { 
+                    showError("कनेक्शन एरर आ रहा है।");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Login";
+                }
 
             } else {
                 submitBtn.innerText = "Registering...";
                 
-                if (supabaseClient) {
-                    try {
-                        // FIX: 'players_profile' की जगह 'user' टेबल में डेटा इन्सर्ट किया
-                        await supabaseClient
-                            .from('user')
-                            .insert([{ mobile: mobile, password: password, player_id: randomId }]);
-                    } catch(err) { console.log(err); }
-                }
+                try {
+                    const { data: checkUser } = await supabaseClient
+                        .from('user')
+                        .select('mobile')
+                        .eq('mobile', mobile)
+                        .maybeSingle();
 
-                showSuccess("अकाउंट सफलतापूर्वक बन गया! होम पेज खुल रहा है...");
-                localStorage.setItem('my77play_user', mobile);
-                localStorage.setItem('my77play_id', randomId); 
-                setTimeout(() => { window.location.href = 'home.html'; }, 800);
-            }
-        }
+                    if (checkUser) {
+                        showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Register";
+                        return;
+                    }
 
-        whatsappLink.href = 'https://wa.me';
-        helpBox.style.display = 'block';
-    </script>
-</body>
-</html>
+                    // 1 से 9 के बीच अंकों वाली 8-digit की एकदम नई रैंडम ID बनाना (जो हमेशा परमानेंट रहेगी)
+                    const randomId = Math.floor(10000000 + Math.random() * 90000000);
+
+                    // सुप्रबेस डेटाबेस में रैंडम आईडी हमेशा के लिए सेव करना
+                    const { error: insertError } = await supabaseClient
+                        .from('user')
+                        .insert([{ mobile: mobile, password: password, player_id: randomId, wallet_balance: 0 }]);
+
+                    if (insertError) {
+                        showError("रजिस्ट्रेशन फेल: " + insertError.message);
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Register";
+                        return;
+                    }
+
+                    // सुधार: सिर्फ 'Successful Register!' मैसेज दिखेगा
