@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://.supabase.co https://jsdelivr.net; img-src 'self' data: blob: https://.supabase.co;">
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://supabase.co; img-src 'self' data: blob: https://*.supabase.co;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Home</title>
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
@@ -37,7 +37,6 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- टॉप यूजर हेडर (यह गेम्स और प्रोफाइल दोनों टैब में ऊपर हमेशा सेम परमानेंट ID दिखाएगा) -->
         <div class="user-header">
             <div class="user-info">
                 <div class="user-phone" id="user-phone">Loading...</div>
@@ -49,11 +48,9 @@
             </div>
         </div>
 
-        <!-- 1. GAMES SCREEN TAB -->
         <div id="games-section">
             <h2>All Games</h2>
             <div class="games-grid">
-                <!-- बदलाव 2: सभी 4 गेम्स पर Play Now का बटन लगाया -->
                 <div class="game-card">
                     <div><div class="game-icon">🎨</div><div class="game-name">Colour Prediction</div></div>
                     <button class="game-btn" onclick="openGamePage('Colour Prediction')">Play Now</button>
@@ -73,11 +70,9 @@
             </div>
         </div>
 
-        <!-- 2. PROFILE SCREEN TAB -->
         <div id="profile-section">
             <h2>My Profile</h2>
             <div class="profile-menu">
-                <!-- बदलाव 3 & 4: प्रोफाइल के बटन्स को सही क्रम में सेट किया -->
                 <button class="menu-btn" onclick="handleAction('Recharge')">🟢 Deposit / Recharge</button>
                 <button class="menu-btn" onclick="handleAction('Withdrawal')">🔴 Withdrawal Money</button>
                 <button class="menu-btn" onclick="handleAction('Help')">💬 Customer Support</button>
@@ -95,20 +90,20 @@
         const activeUser = localStorage.getItem('my77play_user');
         if (!activeUser) { window.location.href = 'index.html'; } else { document.getElementById('user-phone').innerText = "+91 " + activeUser; }
 
-        // बदलाव 1: लोकलस्टोरेज बैकअप से परमानेंट ID तुरंत लोड करेगा ताकि "Loading..." गायब हो जाए
         let savedId = localStorage.getItem('my77play_id');
         if (savedId) { document.getElementById('user-permanent-id').innerText = "ID: " + savedId; }
 
         const supabaseUrl = 'https://supabase.co';
+        // यहाँ भी असली Anon Key सेट कर दी है
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         async function loadUserData() {
             if (!supabaseClient || !activeUser) return;
             try {
-                const { data } = await supabaseClient.from('user').select('wallet_balance, player_id').eq('mobile', activeUser).maybeSingle();
+                const { data } = await supabaseClient.from('user').select('balance, player_id').eq('mobile', activeUser).maybeSingle();
                 if (data) {
-                    document.getElementById('main-balance').innerText = '₹' + parseFloat(data.wallet_balance || 0).toFixed(2);
+                    document.getElementById('main-balance').innerText = '₹' + parseFloat(data.balance || 0).toFixed(2);
                     if (data.player_id) {
                         document.getElementById('user-permanent-id').innerText = "ID: " + data.player_id;
                         localStorage.setItem('my77play_id', data.player_id);
@@ -132,19 +127,12 @@
         }
 
         function openGamePage(gameName) { alert("Opening " + gameName + " Game Screen..."); }
-        
         function handleAction(type) {
             if (type === 'Recharge') { alert("Deposit / Recharge Panel Clicked!"); }
             else if (type === 'Withdrawal') { alert("Withdrawal Money Panel Clicked!"); }
             else if (type === 'Help') { window.open('https://wa.me', '_blank'); }
         }
-        
-        // बदलाव 5: लॉगआउट करने पर पूरा सेशन डिलीट होकर index.html पेज खुल जाएगा
-        function handleLogout() { 
-            localStorage.removeItem('my77play_user'); 
-            localStorage.removeItem('my77play_id'); 
-            window.location.href = 'index.html'; 
-        }
+        function handleLogout() { localStorage.removeItem('my77play_user'); localStorage.removeItem('my77play_id'); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
