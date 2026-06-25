@@ -3,37 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>my77play.in - Login & Register</title>
-    
-    <!-- Supabase v2 CDN Link - Perfect & Verified -->
-    <script src="https://unpkg.com"></script>
-
+    <title>my77play - Login</title>
+    <!-- Supabase की ऑफिशियल लाइब्रेरी जोड़ना ज़रूरी है -->
+    <script src="https://jsdelivr.net"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #12121c; color: #fff; }
-        
+        body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
         .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
-        
         h1 { font-size: 2.6rem; color: #00ffcc; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
         h2 { margin-bottom: 25px; color: #aaa; font-size: 1rem; font-weight: normal; }
-        
-        .form-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; margin-bottom: 8px; color: #00ffcc; font-size: 0.85rem; letter-spacing: 0.5px; }
-        input { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid #2c2c3e; background: #252538; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
-        input:focus { border-color: #00ffcc; box-shadow: 0 0 8px rgba(0, 255, 204, 0.2); }
-        
-        button { width: 100%; padding: 14px; border: none; border-radius: 8px; background: #00ffcc; color: #12121c; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; box-shadow: 0 4px 12px rgba(0, 255, 204, 0.2); }
-        button:hover { background: #00e6b8; transform: translateY(-1px); }
-        button:disabled { background: #444; color: #888; cursor: not-allowed; box-shadow: none; }
-        
+        form { display: flex; flex-direction: column; gap: 15px; }
+        input { background: #2c2c3e; border: 1px solid #444; padding: 12px; border-radius: 8px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
+        input:focus { border-color: #00ffcc; box-shadow: 0 0 8px rgba(0,255,204,0.2); }
+        button { background: #00ffcc; color: #0f0f1a; border: none; padding: 14px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        button:hover { background: #00ccaa; box-shadow: 0 0 15px rgba(0,255,204,0.4); }
+        button:disabled { background: #555; color: #aaa; cursor: not-allowed; }
         .toggle-link { margin-top: 20px; display: block; color: #aaa; cursor: pointer; font-size: 0.9rem; }
         .toggle-link span { color: #00ffcc; text-decoration: underline; font-weight: bold; }
-        
         .help-section { margin-top: 25px; padding-top: 15px; border-top: 1px solid #2c2c3e; font-size: 0.85rem; color: #777; display: none; }
         .help-section a { color: #25D366; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; }
-        
-        .error-msg { color: #ff4d4d; margin-bottom: 15px; font-size: 0.9rem; display: none; background: rgba(255, 77, 77, 0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 77, 77, 0.2); }
-        .success-msg { color: #25D366; margin-bottom: 15px; font-size: 0.9rem; display: none; background: rgba(37, 211, 102, 0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(37, 211, 102, 0.2); }
+        .help-section a:hover { text-decoration: underline; }
+        .error-msg { color: #ff4d4d; margin-bottom: 15px; font-size: 0.9rem; display: none; background: rgba(255, 77, 77, 0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 77, 77, 0.2); text-align: left; }
+        .success-msg { color: #25D366; margin-bottom: 15px; font-size: 0.9rem; display: none; background: rgba(37, 211, 102, 0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(37, 211, 102, 0.2); text-align: left; }
     </style>
 </head>
 <body>
@@ -42,20 +32,13 @@
         <h1>my77play</h1>
         <h2 id="form-title">Login to Play</h2>
 
+        <!-- Alerts -->
         <div id="error-box" class="error-msg"></div>
         <div id="success-box" class="success-msg"></div>
 
-        <form id="auth-form" onsubmit="handleSubmit(event)">
-            <div class="form-group">
-                <label>Mobile Number</label>
-                <input type="tel" id="mobile" placeholder="Enter 10 digit number" required pattern="[0-9]{10}">
-            </div>
-            
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="password" placeholder="Enter password" required minlength="6">
-            </div>
-
+        <form id="auth-form" onsubmit="handleAuth(event)">
+            <input type="tel" id="mobile" placeholder="Enter Mobile Number" required pattern="[0-9]{10}">
+            <input type="password" id="password" placeholder="Enter Password" required minlength="6">
             <button type="submit" id="submit-btn">Login</button>
         </form>
 
@@ -70,17 +53,16 @@
     </div>
 
     <script>
-        // --- 1. DIRECT SUPABASE CONNECTION (FIXED INITIALIZATION ERROR) ---
-        const supabaseUrl = 'https://supabase.co';
+        // --- 1. SUPABASE CONNECTION (FIXED & SECURE) ---
+        // ⚠️ यहाँ अपनी असली Supabase URL पेस्ट करो (Dashboard -> Project Settings -> API से मिलेगी)
+        const supabaseUrl = 'https://ffejvfluwezmbrfxmsjq.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
-        
-        // FIXED: Changed from supabase.createClient to global supabase.createClient
-        const instance = window.supabase || supabase;
-        const supabaseClient = instance.createClient(supabaseUrl, supabaseKey);
 
-        // --- 2. MANAGEMENT STATE ---
+        // कनेक्शन को एकदम सही तरीके से शुरू किया
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // --- 2. ELEMENTS & STATE ---
         let isLoginMode = true;
-
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
         const toggleAuth = document.getElementById('toggle-auth');
@@ -97,66 +79,60 @@
                     whatsappLink.href = 'https://wa.me' + data.value;
                     helpBox.style.display = 'block';
                 }
-            } catch (e) {
-                helpBox.style.display = 'none';
+            } catch (err) {
+                console.log("WhatsApp settings load failed");
             }
         }
         loadHelpNumber();
 
+        // --- 4. TOGGLE MODE (LOGIN / REGISTER) ---
         function toggleMode() {
             isLoginMode = !isLoginMode;
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
-            document.getElementById('auth-form').reset();
             
             if (isLoginMode) {
                 formTitle.innerText = "Login to Play";
                 submitBtn.innerText = "Login";
                 toggleAuth.innerHTML = "Don't have an account? <span>Register New Account</span>";
             } else {
-                formTitle.innerText = "Register New Account";
-                submitBtn.innerText = "Register Now";
+                formTitle.innerText = "Register Account";
+                submitBtn.innerText = "Register";
                 toggleAuth.innerHTML = "Already have an account? <span>Login Here</span>";
             }
         }
 
-        // --- 4. CORE CONTROLLER (LOGIN & REGISTER) ---
-        async function handleSubmit(event) {
-            event.preventDefault();
+        // --- 5. AUTH LOGIC (LOGIN / SIGNUP) ---
+        async function handleAuth(e) {
+            e.preventDefault();
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
 
-            const mobile = document.getElementById('mobile').value.trim();
+            const mobile = document.getElementById('mobile').value;
             const password = document.getElementById('password').value;
             const customEmail = mobile + '@my77play.com';
 
+            submitBtn.disabled = true;
+
             if (isLoginMode) {
                 submitBtn.innerText = "Logging in...";
-                submitBtn.disabled = true;
-
                 const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: customEmail,
                     password: password,
                 });
 
                 if (error) {
-                    if (error.message === "Invalid login credentials") {
-                        showError("गलत मोबाइल नंबर या पासवर्ड!");
-                    } else {
-                        showError(error.message);
-                    }
-                    submitBtn.innerText = "Login";
+                    showError(error.message);
                     submitBtn.disabled = false;
+                    submitBtn.innerText = "Login";
                 } else {
-                    showSuccess("लॉगिन सफल! होम पेज लोड हो रहा है...");
+                    showSuccess("Login Successful! Redirecting...");
                     setTimeout(() => {
-                        window.location.href = "home.html";
+                        window.location.href = '/dashboard'; // लॉगिन के बाद गेम पेज पर भेजने के लिए
                     }, 1200);
                 }
             } else {
                 submitBtn.innerText = "Registering...";
-                submitBtn.disabled = true;
-
                 const { data, error } = await supabaseClient.auth.signUp({
                     email: customEmail,
                     password: password,
@@ -164,25 +140,24 @@
 
                 if (error) {
                     showError(error.message);
-                    submitBtn.innerText = "Register Now";
                     submitBtn.disabled = false;
+                    submitBtn.innerText = "Register";
                 } else {
-                    showSuccess("अकाउंट बन गया! अब तुरंत लॉगिन करें।");
-                    setTimeout(() => {
-                        toggleMode();
-                    }, 2000);
+                    showSuccess("Registration Successful! Please login now.");
+                    toggleMode();
+                    submitBtn.disabled = false;
                 }
             }
         }
-        function showSuccess(msg) {
-            successBox.innerText = msg;
-            successBox.style.display = 'block';
 
         function showError(msg) {
             errorBox.innerText = msg;
             errorBox.style.display = 'block';
         }
 
+        function showSuccess(msg) {
+            successBox.innerText = msg;
+            successBox.style.display = 'block';
         }
     </script>
 </body>
