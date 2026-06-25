@@ -7,8 +7,6 @@
     
     <!-- मुख्य Supabase CDN -->
     <script src="https://jsdelivr.net"></script>
-    <!-- बैकअप CDN (अगर पहला फेल हो जाए तो यह काम करेगा) -->
-    <script src="https://cloudflare.com" integrity="sha512-Ym0bZUp7SctfR6GZREU96C9wAsC0shfV5p786Vb7bFp7M7E9v6E6bO6wUv7VbM1wZJ3k8X==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <style>
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
@@ -21,7 +19,7 @@
         button { background: #00ffcc; color: #0f0f1a; border: none; padding: 14px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
         button:hover { background: #00ccaa; box-shadow: 0 0 15px rgba(0,255,204,0.4); }
         button:disabled { background: #555; color: #aaa; cursor: not-allowed; }
-        .toggle-link { margin-top: 20px; display: block; color: #aaa; cursor: pointer; font-size: 0.9rem; }
+        .toggle-link { margin-top: 20px; display: block; color: #aaa; cursor: pointer; font-size: 0.9rem; user-select: none; }
         .toggle-link span { color: #00ffcc; text-decoration: underline; font-weight: bold; }
         .help-section { margin-top: 25px; padding-top: 15px; border-top: 1px solid #2c2c3e; font-size: 0.85rem; color: #777; display: none; }
         .help-section a { color: #25D366; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; }
@@ -56,29 +54,23 @@
     </div>
 
     <script>
-        // --- 1. SUPABASE CONFIGURATION ---
+        // --- सुप्रबेस क्रेडेंशियल्स ---
         const supabaseUrl = 'https://supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
 
         let supabaseClient = null;
 
-        // डेटाबेस कनेक्शन इनिशियलाइज़ करने का सुरक्षित फंक्शन
         function initSupabase() {
             try {
                 if (typeof supabase !== 'undefined' && supabase.createClient) {
                     supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-                } else if (window.supabase && window.supabase.createClient) {
-                    supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
                 }
             } catch (e) {
-                console.error("Supabase initialization fell back:", e);
+                console.error("Supabase load error:", e);
             }
         }
-        
-        // तुरंत रन करें
         initSupabase();
 
-        // --- 2. UI ELEMENTS ---
         let isLoginMode = true;
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
@@ -100,27 +92,12 @@
             errorBox.style.display = 'none';
         }
 
-        // --- 3. WHATSAPP HELP LINK ---
-        async function loadHelpNumber() {
-            if (!supabaseClient) initSupabase();
-            if (!supabaseClient) return;
-            try {
-                const { data } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').maybeSingle();
-                whatsappLink.href = (data && data.value) ? 'https://wa.me' + data.value : 'https://wa.me919999999999';
-                helpBox.style.display = 'block';
-            } catch (err) {
-                whatsappLink.href = 'https://wa.me919999999999';
-                helpBox.style.display = 'block';
-            }
-        }
-        // थोड़ा डिले देकर लोड करेंगे ताकि CDN को रेडी होने का समय मिले
-        setTimeout(loadHelpNumber, 1000);
-
-        // --- 4. TOGGLE LOGIN/REGISTER ---
+        // मोड बदलने का फंक्शन (लॉगिन <-> रजिस्ट्रेशन)
         function toggleMode() {
             isLoginMode = !isLoginMode;
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
+            
             if (isLoginMode) {
                 formTitle.innerText = "Login to Play";
                 submitBtn.innerText = "Login";
@@ -132,23 +109,19 @@
             }
         }
 
-        // --- 5. CORE LOGIC (LOGIN & REGISTER) ---
         async function handleAuth(e) {
             e.preventDefault();
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
 
-            // अगर पहले कनेक्शन नहीं हुआ था, तो यहाँ दोबारा कोशिश करेगा
             if (!supabaseClient) initSupabase();
-
             if (!supabaseClient) {
-                showError("Database connection failed! Please refresh the page or check your internet connection.");
+                showError("Database connection failed! Please refresh.");
                 return;
             }
 
             const mobile = document.getElementById('mobile').value;
             const password = document.getElementById('password').value;
-
             submitBtn.disabled = true;
 
             if (isLoginMode) {
@@ -161,35 +134,71 @@
                     .maybeSingle();
 
                 if (error) {
-                    showError("Error connecting to database. Please try again.");
+                    showError("Server error! Please try again.");
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Login";
                 } else if (!data) {
-                    showError("Mobile number not registered! Please create an account.");
+                    // सुधार: अगर नंबर रजिस्टर नहीं है तो स्पष्ट एरर संदेश
+                    showError("इस नंबर से कोई डिटेल उपलब्ध नहीं है! कृपया पहले नया अकाउंट बनाएं।");
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Login";
                 } else {
                     if (data.password !== password) {
-                        showError("Incorrect Password! Please try again.");
+                        showError("गलत पासवर्ड! कृपया दोबारा जांचें।");
                         submitBtn.disabled = false;
                         submitBtn.innerText = "Login";
                     } else {
-                        // यूजर सेशन को ब्राउज़र मेमोरी में सेव करना
+                        // मुख्य सुधार: लोकलस्टोरेज की की (Key) को 'my77play_user' सेट किया
                         localStorage.setItem('my77play_user', mobile);
-                        showSuccess("Login Successful! Going to Home...");
-                        
-                        // सीधा home.html पर रीडायरेक्ट करना
-                        setTimeout(() => {
-                            window.location.href = 'home.html';
-                        }, 1200);
+                        showSuccess("लॉगिन सफल! होम पेज पर जा रहे हैं...");
+                        setTimeout(() => { window.location.href = 'home.html'; }, 1000);
                     }
                 }
             } else {
                 submitBtn.innerText = "Registering...";
                 
-                // चेक करें कि यूजर पहले से तो रजिस्टर्ड नहीं है
-                const { data: existingUser, error: checkError } = await supabaseClient
+                // जांचें कि नंबर पहले से तो मौजूद नहीं है
+                const { data: existingUser } = await supabaseClient
                     .from('players_profile')
                     .select('mobile')
                     .eq('mobile', mobile)
                     .maybeSingle();
+
+                if (existingUser) {
+                    showError("यह मोबाइल नंबर पहले से रजिस्टर्ड है! कृपया लॉगिन करें।");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Register";
+                    return;
+                }
+
+                // सुप्रबेस डेटाबेस में डेटा सेव (Insert) करना
+                const { error: insertError } = await supabaseClient
+                    .from('players_profile')
+                    .insert([{ mobile: mobile, password: password }]);
+
+                if (insertError) {
+                    showError("रजिस्ट्रेशन फेल: " + insertError.message);
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Register";
+                } else {
+                    showSuccess("अकाउंट सफलतापूर्वक बन गया! होम पेज खुल रहा है...");
+                    localStorage.setItem('my77play_user', mobile);
+                    setTimeout(() => { window.location.href = 'home.html'; }, 1000);
+                }
+            }
+        }
+
+        async function loadHelpNumber() {
+            if (!supabaseClient) return;
+            try {
+                const { data } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').maybeSingle();
+                if (data && data.value) whatsappLink.href = 'https://wa.me' + data.value;
+                helpBox.style.display = 'block';
+            } catch (err) {
+                helpBox.style.display = 'block';
+            }
+        }
+        setTimeout(loadHelpNumber, 800);
+    </script>
+</body>
+</html>
