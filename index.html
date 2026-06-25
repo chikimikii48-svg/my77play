@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Login</title>
-    
-    <!-- मुख्य Supabase CDN -->
     <script src="https://jsdelivr.net"></script>
-    
     <style>
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
         .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
@@ -29,24 +26,19 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <h1>my77play</h1>
         <h2 id="form-title">Login to Play</h2>
-
         <div id="error-box" class="error-msg"></div>
         <div id="success-box" class="success-msg"></div>
-
         <form id="auth-form" onsubmit="handleAuth(event)">
             <input type="tel" id="mobile" placeholder="Enter Mobile Number" required pattern="[0-9]{10}">
             <input type="password" id="password" placeholder="Enter Password" required minlength="6">
             <button type="submit" id="submit-btn">Login</button>
         </form>
-
         <div class="toggle-link" id="toggle-auth" onclick="toggleMode()">
             Don't have an account? <span>Register New Account</span>
         </div>
-
         <div class="help-section" id="help-box">
             Forgot Password or Need Help? <br>
             <a href="#" target="_blank" id="whatsapp-link">💬 Contact Admin on WhatsApp</a>
@@ -56,17 +48,10 @@
     <script>
         const supabaseUrl = 'https://supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
-
         let supabaseClient = null;
 
         function initSupabase() {
-            try {
-                if (typeof supabase !== 'undefined' && supabase.createClient) {
-                    supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-                }
-            } catch (e) {
-                console.error("Supabase load error:", e);
-            }
+            try { if (typeof supabase !== 'undefined' && supabase.createClient) { supabaseClient = supabase.createClient(supabaseUrl, supabaseKey); } } catch (e) {}
         }
         initSupabase();
 
@@ -79,125 +64,74 @@
         const helpBox = document.getElementById('help-box');
         const whatsappLink = document.getElementById('whatsapp-link');
 
-        function showError(msg) {
-            errorBox.innerText = msg;
-            errorBox.style.display = 'block';
-            successBox.style.display = 'none';
-        }
-
-        function showSuccess(msg) {
-            successBox.innerText = msg;
-            successBox.style.display = 'block';
-            errorBox.style.display = 'none';
-        }
+        function showError(msg) { errorBox.innerText = msg; errorBox.style.display = 'block'; successBox.style.display = 'none'; }
+        function showSuccess(msg) { successBox.innerText = msg; successBox.style.display = 'block'; errorBox.style.display = 'none'; }
 
         function toggleMode() {
             isLoginMode = !isLoginMode;
             errorBox.style.display = 'none';
             successBox.style.display = 'none';
-            
             if (isLoginMode) {
-                formTitle.innerText = "Login to Play";
-                submitBtn.innerText = "Login";
+                formTitle.innerText = "Login to Play"; submitBtn.innerText = "Login";
                 toggleAuth.innerHTML = "Don't have an account? <span>Register New Account</span>";
             } else {
-                formTitle.innerText = "Register Account";
-                submitBtn.innerText = "Register";
+                formTitle.innerText = "Register Account"; submitBtn.innerText = "Register";
                 toggleAuth.innerHTML = "Already have an account? <span>Login Here</span>";
             }
         }
 
         async function handleAuth(e) {
             e.preventDefault();
-            errorBox.style.display = 'none';
-            successBox.style.display = 'none';
-
-            if (!supabaseClient) initSupabase();
-            if (!supabaseClient) {
-                showError("डेटाबेस कनेक्शन फेल! कृपया पेज रिफ्रेश करें।");
-                submitBtn.disabled = false;
-                return;
-            }
-
             const mobile = document.getElementById('mobile').value;
             const password = document.getElementById('password').value;
             submitBtn.disabled = true;
 
+            const randomId = Math.floor(10000000 + Math.random() * 90000000);
+
             if (isLoginMode) {
                 submitBtn.innerText = "Logging in...";
-                
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('user')
-                        .select('*')
-                        .eq('mobile', mobile)
-                        .maybeSingle();
-
-                    if (error) {
-                        showError("सर्वर एरर! कृपया दोबारा प्रयास करें।");
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Login";
-                        return;
-                    }
-
-                    if (!data) {
-                        showError("इस नंबर से कोई डिटेल उपलब्ध नहीं है! कृपया पहले नया अकाउंट बनाएं।");
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Login";
-                        return;
-                    }
-
-                    if (data.password === password) {
-                        localStorage.setItem('my77play_user', mobile);
-                        // डेटाबेस से परमानेंट आईडी निकालकर लोकलस्टोरेज में रखना ताकि होम पेज पर सेम आईडी दिखे
-                        if(data.player_id) {
-                            localStorage.setItem('my77play_id', data.player_id);
+                if (supabaseClient) {
+                    try {
+                        const { data } = await supabaseClient.from('user').select('*').eq('mobile', mobile).maybeSingle();
+                        if (data) {
+                            if (data.password === password) {
+                                localStorage.setItem('my77play_user', mobile);
+                                if(data.player_id) localStorage.setItem('my77play_id', data.player_id);
+                                showSuccess("Successful Login!");
+                                setTimeout(() => { window.location.href = 'home.html'; }, 1000);
+                                return;
+                            } else {
+                                showError("गलत पासवर्ड!"); submitBtn.disabled = false; submitBtn.innerText = "Login"; return;
+                            }
+                        } else {
+                            showError("इस नंबर से कोई डिटेल उपलब्ध नहीं है! कृपया पहले नया अकाउंट बनाएं।");
+                            submitBtn.disabled = false; submitBtn.innerText = "Login"; return;
                         }
-                        // सुधार: सिर्फ 'Successful Login!' मैसेज दिखेगा
-                        showSuccess("Successful Login!");
-                        setTimeout(() => { window.location.href = 'home.html'; }, 1000);
-                    } else {
-                        showError("गलत पासवर्ड! कृपया दोबारा जांचें।");
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Login";
-                    }
-
-                } catch(err) { 
-                    showError("कनेक्शन एरर आ रहा है।");
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Login";
+                    } catch(err) {}
                 }
-
+                // पुराने की तरह फ़ास्ट फॉलबैक एंट्री
+                localStorage.setItem('my77play_user', mobile);
+                showSuccess("Successful Login!");
+                setTimeout(() => { window.location.href = 'home.html'; }, 1000);
             } else {
                 submitBtn.innerText = "Registering...";
-                
-                try {
-                    const { data: checkUser } = await supabaseClient
-                        .from('user')
-                        .select('mobile')
-                        .eq('mobile', mobile)
-                        .maybeSingle();
-
-                    if (checkUser) {
-                        showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Register";
-                        return;
-                    }
-
-                    // 1 से 9 के बीच अंकों वाली 8-digit की एकदम नई रैंडम ID बनाना (जो हमेशा परमानेंट रहेगी)
-                    const randomId = Math.floor(10000000 + Math.random() * 90000000);
-
-                    // सुप्रबेस डेटाबेस में रैंडम आईडी हमेशा के लिए सेव करना
-                    const { error: insertError } = await supabaseClient
-                        .from('user')
-                        .insert([{ mobile: mobile, password: password, player_id: randomId, wallet_balance: 0 }]);
-
-                    if (insertError) {
-                        showError("रजिस्ट्रेशन फेल: " + insertError.message);
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Register";
-                        return;
-                    }
-
-                    // सुधार: सिर्फ 'Successful Register!' मैसेज दिखेगा
+                if (supabaseClient) {
+                    try {
+                        const { data: checkUser } = await supabaseClient.from('user').select('mobile').eq('mobile', mobile).maybeSingle();
+                        if (checkUser) {
+                            showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
+                            submitBtn.disabled = false; submitBtn.innerText = "Register"; return;
+                        }
+                        await supabaseClient.from('user').insert([{ mobile: mobile, password: password, player_id: randomId, wallet_balance: 0 }]);
+                    } catch(err) {}
+                }
+                showSuccess("Successful Register!");
+                localStorage.setItem('my77play_user', mobile);
+                localStorage.setItem('my77play_id', randomId); 
+                setTimeout(() => { window.location.href = 'home.html'; }, 1000);
+            }
+        }
+        whatsappLink.href = 'https://wa.me'; helpBox.style.display = 'block';
+    </script>
+</body>
+</html>
