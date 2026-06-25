@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://.supabase.co https://jsdelivr.net; img-src 'self' data: blob: https://.supabase.co;">
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://supabase.co; img-src 'self' data: blob: https://*.supabase.co;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Login</title>
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
         .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
@@ -48,6 +48,7 @@
 
     <script>
         const supabaseUrl = 'https://supabase.co'; 
+        // आपकी भेजी हुई असली Anon Key यहाँ फिक्स कर दी है
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
         let supabaseClient = null;
 
@@ -87,7 +88,6 @@
             const password = document.getElementById('password').value;
             submitBtn.disabled = true;
 
-            // 8 अंकों की रैंडम परमानेंट आईडी जेनरेट करना
             const randomId = Math.floor(10000000 + Math.random() * 90000000);
 
             if (isLoginMode) {
@@ -98,28 +98,19 @@
                         if (data) {
                             if (data.password === password) {
                                 localStorage.setItem('my77play_user', mobile);
-                                if(data.player_id) {
-                                    localStorage.setItem('my77play_id', data.player_id);
-                                } else {
-                                    // यदि डेटाबेस में आईडी न हो तो नई आईडी बनाकर सेव कर दे
-                                    localStorage.setItem('my77play_id', randomId);
-                                    await supabaseClient.from('user').update({ player_id: randomId }).eq('mobile', mobile);
-                                }
-                                window.location.href = 'home.html';
+                                localStorage.setItem('my77play_id', data.player_id || randomId);
+                                showSuccess("Successful Login!");
+                                setTimeout(() => { window.location.href = 'home.html'; }, 1000);
                                 return;
                             } else {
-                                showError("गलत पासवर्ड!"); submitBtn.disabled = false; submitBtn.innerText = "Login"; return;
+                                showError("Incorrect Password! Please try again."); submitBtn.disabled = false; submitBtn.innerText = "Login"; return;
                             }
                         } else {
-                            // बदलाव 1: नया नंबर सीधे लॉगिन करने की कोशिश करे तो यह मैसेज दिखेगा
                             showError("आप मौजूद यूजर नहीं हो, कृपया पहले रजिस्टर करो।");
                             submitBtn.disabled = false; submitBtn.innerText = "Login"; return;
                         }
                     } catch(err) {}
                 }
-                localStorage.setItem('my77play_user', mobile);
-                localStorage.setItem('my77play_id', randomId);
-                window.location.href = 'home.html';
             } else {
                 submitBtn.innerText = "Registering...";
                 if (supabaseClient) {
@@ -129,11 +120,9 @@
                             showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
                             submitBtn.disabled = false; submitBtn.innerText = "Register"; return;
                         }
-                        // रजिस्ट्रेशन के वक्त डेटाबेस में बैलेंस 0 और आईडी सेव करना
-                        await supabaseClient.from('user').insert([{ mobile: mobile, password: password, player_id: randomId, wallet_balance: 0 }]);
+                        await supabaseClient.from('user').insert([{ mobile: mobile, password: password, player_id: randomId, balance: 0 }]);
                     } catch(err) {}
                 }
-                // बदलाव 2: रजिस्ट्रेशन सफल होने पर यह मैसेज दिखेगा और लॉगिन स्क्रीन पर भेज देगा
                 showSuccess("Registration Successfully! Login Now");
                 setTimeout(() => { toggleMode(); submitBtn.disabled = false; }, 1200);
             }
