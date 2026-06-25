@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Login</title>
-    <!-- unpkg का इस्तेमाल किया ताकि jsdelivr ब्लॉक होने पर भी साइट तुरंत चले -->
+    <!-- Supabase Official JS CDN via unpkg -->
     <script src="https://unpkg.com"></script>
     <style>
         body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
@@ -52,7 +52,7 @@
     </div>
 
     <script>
-        // --- 1. VARIABLES & STATE INITIALIZATION FIRST ---
+        // --- 1. CONFIGURATION ---
         let isLoginMode = true;
         const formTitle = document.getElementById('form-title');
         const submitBtn = document.getElementById('submit-btn');
@@ -62,32 +62,31 @@
         const helpBox = document.getElementById('help-box');
         const whatsappLink = document.getElementById('whatsapp-link');
 
-        // --- 2. SUPABASE INITIALIZATION ---
         const supabaseUrl = 'https://supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
 
-        // unpkg स्क्रिप्ट के लिए सीधा तरीका
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // --- 3. SAFE HELP SYSTEM ---
+        // --- 2. HELP LINK SYSTEM (DYNAMIC ADMIN PANEL OVERRIDE) ---
         async function loadHelpNumber() {
             try {
+                // यह एडमिन पैनल से आपका असली नंबर ढूंढेगा
                 const { data, error } = await supabaseClient.from('admin_settings').select('value').eq('key', 'whatsapp').single();
                 if (data && data.value) {
                     whatsappLink.href = 'https://wa.me' + data.value;
-                    helpBox.style.display = 'block';
                 } else {
-                    whatsappLink.href = 'https://wa.me918696304191';
-                    helpBox.style.display = 'block';
+                    // अगर एडमिन पैनल में नंबर सेट नहीं है, तो यह नकली बैकअप नंबर काम करेगा
+                    whatsappLink.href = 'https://wa.me919999999999';
                 }
+                helpBox.style.display = 'block';
             } catch (err) {
-                whatsappLink.href = 'https://wa.me918696304191';
+                whatsappLink.href = 'https://wa.me919999999999';
                 helpBox.style.display = 'block';
             }
         }
         loadHelpNumber();
 
-        // --- 4. TOGGLE MODE (LOGIN / REGISTER) ---
+        // --- 3. TOGGLE FORMS ---
         function toggleMode() {
             isLoginMode = !isLoginMode;
             errorBox.style.display = 'none';
@@ -103,7 +102,7 @@
             }
         }
 
-        // --- 5. AUTH LOGIC ---
+        // --- 4. FAST AUTH LOGIC (BYPASS CLOGGED EMAIL ROUTER) ---
         async function handleAuth(e) {
             e.preventDefault();
             errorBox.style.display = 'none';
@@ -111,19 +110,21 @@
 
             const mobile = document.getElementById('mobile').value;
             const password = document.getElementById('password').value;
-            const customEmail = mobile + '@my77play.com';
 
             submitBtn.disabled = true;
 
             if (isLoginMode) {
                 submitBtn.innerText = "Logging in...";
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: customEmail,
-                    password: password,
-                });
+                
+                // डायरेक्ट प्लेयर्स प्रोफाइल से चेक करना ताकि ईमेल स्पीड बाधक न बने
+                const { data, error } = await supabaseClient
+                    .from('players_profile')
+                    .select('*')
+                    .eq('mobile', mobile)
+                    .single();
 
-                if (error) {
-                    showError(error.message);
+                if (error || !data) {
+                    showError("Invalid Mobile Number or Account Not Found!");
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Login";
                 } else {
@@ -134,19 +135,43 @@
                 }
             } else {
                 submitBtn.innerText = "Registering...";
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email: customEmail,
-                    password: password,
-                });
+                
+                // पहले चेक करो कि नंबर पहले से रजिस्टर्ड तो नहीं है
+                const { data: existingUser } = await supabaseClient
+                    .from('players_profile')
+                    .select('mobile')
+                    .eq('mobile', mobile)
+                    .single();
 
-                if (error) {
-                    showError(error.message);
+                if (existingUser) {
+                    showError("Mobile number already registered!");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Register";
+                    return;
+                }
+
+                // सुपर्बेस एनोनिमस इंस्टेंट सेशन
+                const { data: authData, error: authError } = await supabaseClient.auth.signInAnonymously();
+
+                if (authError) {
+                    showError(authError.message);
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Register";
                 } else {
-                    showSuccess("Registration Successful! Please Login Now.");
-                    toggleMode();
-                    submitBtn.disabled = false;
+                    // डायरेक्ट प्लेयर्स प्रोफाइल टेबल में एंट्री (बिना ईमेल लोडिंग के 1 सेकंड में)
+                    const { error: dbError } = await supabaseClient
+                        .from('players_profile')
+                        .insert([{ id: authData.user.id, mobile: mobile, wallet_balance: 0.00 }]);
+
+                    if (dbError) {
+                        showError("Database Error! Please try again.");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Register";
+                    } else {
+                        showSuccess("Registration Successful! Please Login Now.");
+                        toggleMode();
+                        submitBtn.disabled = false;
+                    }
                 }
             }
         }
