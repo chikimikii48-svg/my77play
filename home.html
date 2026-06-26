@@ -1,1 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://supabase.co; img-src 'self' data: blob: https://*.supabase.co;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my77play - Premium Dashboard</title>
+    <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0b0b13; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding-bottom: 90px; display: flex; flex-direction: column; align-items: center; }
+        .main-container { width: 100%; max-width: 420px; padding: 20px; }
+        
+        /* प्रीमियम हेडर डिजाइन - मोबाइल नंबर पूरी तरह गायब */
+        .user-header { background: linear-gradient(135deg, #161626 0%, #1f1f3a 100%); padding: 18px; border-radius: 20px; border: 1px solid rgba(0, 255, 204, 0.2); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+        .user-info .user-id { font-size: 1.2rem; color: #00ffcc; font-weight: 800; font-family: monospace; text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); letter-spacing: 1px; }
+        .wallet-box { background: rgba(0, 0, 0, 0.3); padding: 10px 15px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05); text-align: right; }
+        .wallet-box .bal-title { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+        .wallet-box .bal-amount { font-size: 1.25rem; color: #00ffcc; font-weight: 800; }
 
+        h2 { font-size: 1.2rem; margin-bottom: 18px; color: #fff; text-transform: uppercase; letter-spacing: 1.5px; border-left: 4px solid #00ffcc; padding-left: 10px; }
+
+        /* असली गेम्स थंबनेल जैसा दिखने वाला ग्रिड */
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .game-card { border-radius: 18px; padding: 20px; text-align: center; transition: all 0.4s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 160px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
+        .game-card:hover { transform: translateY(-5px); }
+        
+        /* कर्सर और गेम कार्ड्स के रियल थीम्स */
+        .card-colour { background: linear-gradient(135deg, #1d1b4c 0%, #ff007f 50%, #00ffcc 100%); box-shadow: 0 8px 25px rgba(255, 0, 127, 0.2); }
+        .card-mine { background: linear-gradient(135deg, #1a0f1a 0%, #8b0000 100%); box-shadow: 0 8px 25px rgba(139, 0, 0, 0.3); }
+        .card-tail { background: linear-gradient(135deg, #12231c 0%, #b8860b 100%); box-shadow: 0 8px 25px rgba(184, 134, 11, 0.3); }
+        .card-casino { background: linear-gradient(135deg, #1f0f3d 0%, #4b0082 100%); box-shadow: 0 8px 25px rgba(75, 0, 130, 0.3); }
+        
+        .game-icon { font-size: 2.8rem; margin-bottom: 5px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transform: scale(1); transition: 0.3s; }
+        .game-card:hover .game-icon { transform: scale(1.15) rotate(5deg); }
+        .game-name { font-size: 1rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 0.5px; }
+        
+        .game-btn { background: #fff; color: #0b0b13; border: none; padding: 8px 12px; border-radius: 10px; font-weight: 800; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; }
+        .game-card:hover .game-btn { background: #00ffcc; color: #0b0b13; box-shadow: 0 0 15px #00ffcc; }
+
+        /* सुपर स्टाइलिश प्रोफाइल मेनू डिजाइन */
+        #profile-section { display: none; width: 100%; }
+        .profile-menu { display: flex; flex-direction: column; gap: 14px; }
+        .menu-btn { background: #161626; border: 1px solid rgba(255,255,255,0.03); color: #e0e0e0; padding: 16px 20px; border-radius: 14px; text-align: left; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .menu-btn .btn-title { display: flex; align-items: center; gap: 15px; }
+        .menu-btn .arrow { color: #555; font-size: 1.2rem; font-weight: 400; transition: 0.3s; }
+        
+        /* प्रोफाइल बटन्स के नियॉन और हावर इफेक्ट्स */
+        .menu-btn:hover { background: #1f1f3a; border-color: rgba(0, 255, 204, 0.3); color: #fff; transform: translateX(3px); }
+        .menu-btn:hover .arrow { color: #00ffcc; transform: translateX(3px); }
+        
+        .menu-btn.logout { border: 1px solid rgba(255, 77, 77, 0.1); background: rgba(255, 77, 77, 0.02); color: #ff4d4d; }
+        .menu-btn.logout:hover { background: rgba(255, 77, 77, 0.1); border-color: #ff4d4d; color: #fff; }
+        .menu-btn.logout:hover .arrow { color: #ff4d4d; }
+
+        /* बॉटम नेविगेशन बार */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: #141424; border-top: 1px solid rgba(255,255,255,0.05); display: flex; height: 70px; box-shadow: 0 -10px 30px rgba(0,0,0,0.7); z-index: 1000; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-item.active { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
+        .nav-icon { font-size: 1.6rem; margin-bottom: 2px; transition: 0.3s; }
+        .nav-item:hover .nav-icon { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- टॉप यूजर हेडर (केवल परमानेंट ID और बैलेंस शो करेगा) -->
+        <div class="user-header">
+            <div class="user-info">
+                <div class="user-id" id="user-permanent-id">ID: --------</div>
+            </div>
+            <div class="wallet-box">
+                <div class="bal-title">Wallet Balance</div>
+                <div class="bal-amount" id="main-balance">₹0.00</div>
+            </div>
+        </div>
+
+        <!-- 1. GAMES SCREEN TAB -->
+        <div id="games-section">
+            <h2>All Games</h2>
+            <div class="games-grid">
+                <!-- कलर प्रेडिक्शन कार्ड -->
+                <div class="game-card card-colour">
+                    <div><div class="game-icon">🎨</div><div class="game-name">Colour Prediction</div></div>
+                    <button class="game-btn" onclick="openGamePage('Colour Prediction')">Play Now</button>
+                </div>
+                <!-- बॉम्ब माइन कार्ड -->
+                <div class="game-card card-mine">
+                    <div><div class="game-icon">💣</div><div class="game-name">Bomb Mine</div></div>
+                    <button class="game-btn" onclick="openGamePage('Bomb Mine')">Play Now</button>
+                </div>
+                <!-- हेड टेल कार्ड -->
+                <div class="game-card card-tail">
+                    <div><div class="game-icon">🪙</div><div class="game-name">Head & Tail</div></div>
+                    <button class="game-btn" onclick="openGamePage('Head & Tail')">Play Now</button>
+                </div>
+                <!-- कैसीनो कार्ड -->
+                <div class="game-card card-casino">
+                    <div><div class="game-icon">🃏</div><div class="game-name">Casino Slot</div></div>
+                    <button class="game-btn" onclick="openGamePage('Casino Slot')">Play Now</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. PROFILE SCREEN TAB -->
+        <div id="profile-section">
+            <h2>My Profile</h2>
+            <div class="profile-menu">
+                <button class="menu-btn" onclick="handleAction('Recharge')">
+                    <span class="btn-title">🟢 Deposit / Recharge</span><span class="arrow">›</span>
+                </button>
+                <button class="menu-btn" onclick="handleAction('Withdrawal')">
+                    <span class="btn-title">🔴 Withdrawal Money</span><span class="arrow">›</span>
+                </button>
+                <button class="menu-btn" onclick="handleAction('Help')">
+                    <span class="btn-title">💬 Customer Support</span><span class="arrow">›</span>
+                </button>
+                <button class="menu-btn logout" onclick="handleLogout()">
+                    <span class="btn-title">🚪 Logout Account</span><span class="arrow">›</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- बॉटम बार -->
+    <div class="bottom-nav">
+        <div class="nav-item active" id="nav-games" onclick="switchTab('games')"><span class="nav-icon">🎮</span><span>Games</span></div>
+        <div class="nav-item" id="nav-profile" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span>Profile</span></div>
+    </div>
+
+    <script>
+        const activeUser = localStorage.getItem('my77play_user');
+        if (!activeUser) { window.location.href = 'index.html'; }
+
+        let savedId = localStorage.getItem('my77play_id');
+        if (savedId) { document.getElementById('user-permanent-id').innerText = "ID: " + savedId; }
+
+        const supabaseUrl = 'https://supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function loadUserData() {
+            if (!supabaseClient || !activeUser) return;
