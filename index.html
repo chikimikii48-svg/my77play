@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://supabase.co; img-src 'self' data: blob: https://*.supabase.co;" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://supabase.co; img-src 'self' data: blob: https://*.supabase.co;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Login</title>
   <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -27,191 +27,199 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>my77play</h1>
-    <h2 id="form-title">Login to Play</h2>
-    <div id="error-box" class="error-msg"></div>
-    <div id="success-box" class="success-msg"></div>
+<div class="container">
+  <h1>my77play</h1>
+  <h2 id="form-title">Login to Play</h2>
+  <div id="error-box" class="error-msg"></div>
+  <div id="success-box" class="success-msg"></div>
 
-    <form id="auth-form" onsubmit="handleAuth(event)">
-      <!-- REGISTER NAME ONLY (toggle by mode) -->
-      <input type="text" id="name" name="name" placeholder="Enter Name" style="display:none;" />
+  <form id="auth-form">
+    <!-- Register-only name field -->
+    <input type="text" id="name" name="name" placeholder="Enter Name" style="display:none;" />
 
-      <input type="tel" id="mobile" name="mobile" placeholder="Enter Mobile Number" required pattern="[0-9]{10}" />
-      <input type="password" id="password" name="password" placeholder="Enter Password" required minlength="1" />
+    <input type="tel" id="mobile" name="mobile" placeholder="Enter Mobile Number" required pattern="[0-9]{10}">
+    <input type="password" id="password" name="password" placeholder="Enter Password" required minlength="1">
 
-      <button type="submit" id="submit-btn">Login</button>
-    </form>
+    <button type="submit" id="submit-btn">Login</button>
+  </form>
 
-    <div class="toggle-link" id="toggle-auth" onclick="toggleMode()">
-      Don't have an account? <span>Register New Account</span>
-    </div>
-
-    <div class="help-section" id="help-box">
-      Forgot Password or Need Help?<br />
-      <a href="#" target="_blank" id="whatsapp-link">💬 Contact Admin on WhatsApp</a>
-    </div>
+  <div class="toggle-link" id="toggle-auth" onclick="toggleMode()">
+    Don't have an account? <span>Register New Account</span>
   </div>
 
-  <script>
-    const supabaseUrl = 'https://supabase.co';
-    const supabaseKey = 'ey...'; // <- apni actual anon key yahin rakho
+  <div class="help-section" id="help-box">
+    Forgot Password or Need Help?<br>
+    <a href="#" target="_blank" id="whatsapp-link">💬 Contact Admin on WhatsApp</a>
+  </div>
+</div>
 
-    let supabaseClient = null;
+<script>
+  // ==== YAHAN apni SUPABASE URL + ANON KEY paste karo (same as pehle) ====
+  const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co/rest/v1/';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
+  // ================================================================
 
-    function initSupabase() {
-      if (!supabaseClient && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-        supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-      }
+  let supabaseClient = null;
+
+  function initSupabase() {
+    if (!supabaseClient && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+      supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     }
+  }
+  initSupabase();
+
+  let isLoginMode = true;
+
+  const formTitle = document.getElementById('form-title');
+  const submitBtn = document.getElementById('submit-btn');
+  const toggleAuth = document.getElementById('toggle-auth');
+  const errorBox = document.getElementById('error-box');
+  const successBox = document.getElementById('success-box');
+  const whatsappLink = document.getElementById('whatsapp-link');
+
+  const nameInput = document.getElementById('name');
+  const authForm = document.getElementById('auth-form');
+  authForm.addEventListener('submit', handleAuth);
+
+  function showError(msg) {
+    errorBox.innerText = msg;
+    errorBox.style.display = 'block';
+    successBox.style.display = 'none';
+    submitBtn.disabled = false;
+  }
+  function showSuccess(msg) {
+    successBox.innerText = msg;
+    successBox.style.display = 'block';
+    errorBox.style.display = 'none';
+  }
+
+  function toggleMode() {
+    isLoginMode = !isLoginMode;
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+
+    if (isLoginMode) {
+      formTitle.innerText = "Login to Play";
+      submitBtn.innerText = "Login";
+      toggleAuth.innerHTML = "Don't have an account? <span>Register New Account</span>";
+      nameInput.style.display = 'none';
+    } else {
+      formTitle.innerText = "Register Account";
+      submitBtn.innerText = "Register";
+      toggleAuth.innerHTML = "Already have an account? <span>Login Here</span>";
+      nameInput.style.display = 'block';
+    }
+  }
+
+  function random9Digit() {
+    const n = Math.floor(100000000 + Math.random() * 900000000); // 9 digits
+    return String(n);
+  }
+
+  async function handleAuth(e) {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
     initSupabase();
 
-    let isLoginMode = true;
+    const mobile = document.getElementById('mobile').value.trim();
+    const password = document.getElementById('password').value;
+    const name = (document.getElementById('name').value || '').trim();
 
-    const formTitle = document.getElementById('form-title');
-    const submitBtn = document.getElementById('submit-btn');
-    const toggleAuth = document.getElementById('toggle-auth');
-    const errorBox = document.getElementById('error-box');
-    const successBox = document.getElementById('success-box');
-    const helpBox = document.getElementById('help-box');
-    const whatsappLink = document.getElementById('whatsapp-link');
-    const nameInput = document.getElementById('name');
-
-    function showError(msg) {
-      errorBox.innerText = msg;
-      errorBox.style.display = 'block';
-      successBox.style.display = 'none';
-      submitBtn.disabled = false;
-    }
-    function showSuccess(msg) {
-      successBox.innerText = msg;
-      successBox.style.display = 'block';
-      errorBox.style.display = 'none';
+    if (!/^[0-9]{10}$/.test(mobile)) {
+      showError("Mobile number 10 digits ka hona chahiye.");
+      return;
     }
 
-    function random9Digit() {
-      const n = Math.floor(100000000 + Math.random() * 900000000); // 9 digits
-      return String(n);
-    }
+    submitBtn.disabled = true;
 
-    function toggleMode() {
-      isLoginMode = !isLoginMode;
-      errorBox.style.display = 'none';
-      successBox.style.display = 'none';
-
+    try {
       if (isLoginMode) {
-        formTitle.innerText = "Login to Play";
-        submitBtn.innerText = "Login";
-        toggleAuth.innerHTML = "Don't have an account? <span>Register New Account</span>";
-        nameInput.style.display = 'none';
-      } else {
-        formTitle.innerText = "Register Account";
-        submitBtn.innerText = "Register";
-        toggleAuth.innerHTML = "Already have an account? <span>Login Here</span>";
-        nameInput.style.display = 'block';
-      }
-    }
+        submitBtn.innerText = "Logging in...";
 
-    async function handleAuth(e) {
-      e.preventDefault();
+        const { data, error } = await supabaseClient
+          .from('users')
+          .select('*')
+          .eq('mobile', mobile)
+          .maybeSingle();
 
-      errorBox.style.display = 'none';
-      successBox.style.display = 'none';
-      initSupabase();
-
-      const mobile = document.getElementById('mobile').value.trim();
-      const password = document.getElementById('password').value;
-      const name = (document.getElementById('name').value || '').trim();
-
-      if (!/^[0-9]{10}$/.test(mobile)) {
-        showError("Mobile number 10 digits ka hona chahiye.");
-        return;
-      }
-
-      submitBtn.disabled = true;
-
-      try {
-        if (isLoginMode) {
-          submitBtn.innerText = "Logging in...";
-
-          const { data, error } = await supabaseClient
-            .from('users')
-            .select('*')
-            .eq('mobile', mobile)
-            .maybeSingle();
-
-          if (error) {
-            showError("Server error. Please try again.");
-            submitBtn.innerText = "Login";
-            return;
-          }
-
-          if (!data) {
-            showError("आप मौजूद यूजर नहीं हो, कृपया पहले रजिस्टर करो।");
-            submitBtn.innerText = "Login";
-            return;
-          }
-
-          if (String(data.password) !== String(password)) {
-            showError("Incorrect Password! Please try again.");
-            submitBtn.innerText = "Login";
-            return;
-          }
-
-          localStorage.setItem('my77play_user', data.mobile);
-          localStorage.setItem('my77play_id', data.player_id);
-          localStorage.setItem('my77play_name', data.name || '');
-
-          showSuccess("Successful Login!");
-          setTimeout(() => { window.location.href = 'home.html'; }, 800);
-        } else {
-          submitBtn.innerText = "Registering...";
-
-          if (name.length < 2) {
-            showError("Name enter karo.");
-            submitBtn.innerText = "Register";
-            return;
-          }
-
-          // check existing
-          const { data: existing } = await supabaseClient
-            .from('users')
-            .select('mobile')
-            .eq('mobile', mobile)
-            .maybeSingle();
-
-          if (existing) {
-            showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
-            submitBtn.innerText = "Register";
-            return;
-          }
-
-          // insert
-          const newPlayerId = random9Digit();
-
-          const { error: insertError } = await supabaseClient
-            .from('users')
-            .insert([{ player_id: newPlayerId, name, mobile, password, balance: 0 }]);
-
-          if (insertError) {
-            showError("रजिस्ट्रेशन फेल: " + insertError.message);
-            submitBtn.innerText = "Register";
-            return;
-          }
-
-          showSuccess("Registration Successfully! Login Now");
-          setTimeout(() => { toggleMode(); submitBtn.disabled = false; submitBtn.innerText = "Login"; }, 900);
+        if (error) {
+          showError("Server error. Please try again.");
+          submitBtn.innerText = "Login";
+          return;
         }
-      } catch (err) {
-        showError("Error: " + (err?.message || "unknown"));
-        submitBtn.innerText = isLoginMode ? "Login" : "Register";
-      }
-    }
+        if (!data) {
+          showError("आप मौजूद यूजर नहीं हो, कृपया पहले रजिस्टर करो।");
+          submitBtn.innerText = "Login";
+          return;
+        }
+        if (String(data.password) !== String(password)) {
+          showError("Incorrect Password! Please try again.");
+          submitBtn.innerText = "Login";
+          return;
+        }
 
-    whatsappLink.href = 'https://wa.me/'; // apna number do
-    helpBox.style.display = 'block';
-    // default
-    nameInput.style.display = 'none';
-  </script>
+        localStorage.setItem('my77play_user', data.mobile);
+        localStorage.setItem('my77play_id', data.player_id);
+        localStorage.setItem('my77play_name', data.name || '');
+        localStorage.setItem('my77play_balance', String(data.balance ?? 0));
+
+        showSuccess("Successful Login!");
+        setTimeout(() => {
+          window.location.href = 'home.html';
+        }, 600);
+
+      } else {
+        submitBtn.innerText = "Registering...";
+
+        if (name.length < 2) {
+          showError("Name enter karo.");
+          submitBtn.innerText = "Register";
+          return;
+        }
+
+        const { data: existing } = await supabaseClient
+          .from('users')
+          .select('mobile')
+          .eq('mobile', mobile)
+          .maybeSingle();
+
+        if (existing) {
+          showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
+          submitBtn.innerText = "Register";
+          return;
+        }
+
+        const newPlayerId = random9Digit(); // permanent 9-digit id
+
+        const { error: insertError } = await supabaseClient
+          .from('users')
+          .insert([{ player_id: newPlayerId, name, mobile, password, balance: 0 }]);
+
+        if (insertError) {
+          showError("रजिस्ट्रेशन फेल: " + insertError.message);
+          submitBtn.innerText = "Register";
+          return;
+        }
+
+        showSuccess("Registration Successfully! Now Login.");
+        setTimeout(() => {
+          toggleMode(); // back to login
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Login";
+        }, 900);
+      }
+
+    } catch (err) {
+      showError("Error: " + (err?.message || "unknown"));
+      submitBtn.disabled = false;
+      submitBtn.innerText = isLoginMode ? "Login" : "Register";
+    }
+  }
+
+  whatsappLink.href = 'https://wa.me/'; // apna number add karo
+  document.getElementById('help-box').style.display = 'block';
+  nameInput.style.display = 'none';
+</script>
 </body>
 </html>
