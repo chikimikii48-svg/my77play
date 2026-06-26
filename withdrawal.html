@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://supabase.co; img-src 'self' data: blob: https://*.supabase.co;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my77play - Withdrawal Money</title>
+    <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0b0b13; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .withdrawal-container { width: 100%; max-width: 420px; background: #161626; padding: 25px; border-radius: 20px; border: 1px solid rgba(0, 255, 204, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+        
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .back-btn { background: none; border: none; color: #00ffcc; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
+        .header h1 { font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px; color: #fff; }
+
+        /* लाइव वॉलेट बैलेंस बार */
+        .live-bal-bar { background: rgba(0, 255, 204, 0.05); border: 1px solid rgba(0, 255, 204, 0.2); padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 20px; font-weight: bold; color: #00ffcc; font-size: 1.1rem; }
+
+        /* मेथड सेलेक्टर */
+        .method-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .method-btn { flex: 1; background: #1f1f3a; border: 1px solid #333; color: #aaa; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 0.9rem; text-transform: uppercase; }
+        .method-btn.active { background: linear-gradient(135deg, #00ffcc 0%, #00ccaa 100%); color: #0b0b13; border-color: #00ffcc; box-shadow: 0 0 15px rgba(0,255,204,0.3); }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+        .form-group label { font-size: 0.85rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input { background: #1f1f3a; border: 1px solid #333; padding: 12px; border-radius: 10px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; width: 100%; }
+        .form-group input:focus { border-color: #00ffcc; box-shadow: 0 0 8px rgba(0,255,204,0.1); }
+
+        .submit-btn { background: linear-gradient(135deg, #00ffcc 0%, #00ccaa 100%); color: #0b0b13; border: none; padding: 15px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; width: 100%; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,255,204,0.2); }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,255,204,0.4); }
+        .submit-btn:disabled { background: #444; color: #888; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        .msg-box { padding: 12px; border-radius: 8px; font-size: 0.95rem; display: none; margin-bottom: 15px; text-align: left; }
+        .msg-error { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.2); }
+        .msg-success { color: #25D366; background: rgba(37, 211, 102, 0.1); border: 1px solid rgba(37, 211, 102, 0.2); }
+
+        #bank-inputs { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="withdrawal-container">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h1>Withdrawal Money</h1>
+        </div>
+
+        <!-- लाइव बैलेंस शो करेगा -->
+        <div class="live-bal-bar">
+            Available Balance: <span id="w-balance">₹0.00</span>
+        </div>
+
+        <div id="status-msg" class="msg-box"></div>
+
+        <!-- विड्रॉल मेथड चॉइस -->
+        <div class="method-selector">
+            <button class="method-btn active" id="btn-upi" onclick="switchMethod('upi')">UPI Transfer</button>
+            <button class="method-btn" id="btn-bank" onclick="switchMethod('bank')">Bank Account</button>
+        </div>
+
+        <!-- अमाउंट इनपुट -->
+        <div class="form-group">
+            <label>Withdrawal Amount (₹)</label>
+            <input type="number" id="withdraw-amount" placeholder="Minimum ₹200" min="200">
+        </div>
+
+        <!-- होल्डर का नाम (हमेशा ज़रूरी) -->
+        <div class="form-group">
+            <label>Account Holder Name</label>
+            <input type="text" id="holder-name" placeholder="Enter Full Name">
+        </div>
+
+        <!-- UPI इनपुट ब्लॉक -->
+        <div id="upi-inputs">
+            <div class="form-group">
+                <label>Enter UPI ID</label>
+                <input type="text" id="upi-id" placeholder="example@ybl">
+            </div>
+        </div>
+
+        <!-- बैंक अकाउंट इनपुट ब्लॉक -->
+        <div id="bank-inputs">
+            <div class="form-group">
+                <label>Account Number</label>
+                <input type="text" id="account-number" placeholder="Enter Bank Account Number">
+            </div>
+            <div class="form-group">
+                <label>IFSC Code</label>
+                <input type="text" id="ifsc-code" placeholder="Enter 11-digit IFSC" maxlength="11">
+            </div>
+        </div>
+
+        <button class="submit-btn" id="sub-btn" onclick="submitWithdrawal()">Submit Withdrawal</button>
+    </div>
+
+    <script>
+        const activeUser = localStorage.getItem('my77play_user');
+        if (!activeUser) { window.location.href = 'index.html'; }
+
+        const supabaseUrl = 'https://supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const statusMsg = document.getElementById('status-msg');
+        const subBtn = document.getElementById('sub-btn');
+        let currentMethod = 'upi';
+        let userCurrentBalance = 0;
+
+        // लाइव यूजर बैलेंस लोड करना
+        async function fetchUserBalance() {
+            if (!supabaseClient || !activeUser) return;
+            try {
+                const { data } = await supabaseClient.from('user').select('balance').eq('mobile', activeUser).maybeSingle();
+                if (data) {
+                    userCurrentBalance = parseFloat(data.balance || 0);
+                    document.getElementById('w-balance').innerText = '₹' + userCurrentBalance.toFixed(2);
+                }
+            } catch (err) {}
+        }
+        fetchUserBalance();
+
+        function showMsg(text, isSuccess) {
+            statusMsg.innerText = text;
+            statusMsg.style.display = 'block';
+            statusMsg.className = "msg-box " + (isSuccess ? "msg-success" : "msg-error");
+        }
+
+        function switchMethod(method) {
+            currentMethod = method;
+            const upiInputs = document.getElementById('upi-inputs');
+            const bankInputs = document.getElementById('bank-inputs');
+            const btnUpi = document.getElementById('btn-upi');
+            const btnBank = document.getElementById('btn-bank');
+
+            statusMsg.style.display = 'none';
+
+            if (method === 'upi') {
+                upiInputs.style.display = 'block';
+                bankInputs.style.display = 'none';
+                btnUpi.classList.add('active');
+                btnBank.classList.remove('active');
+            } else {
+                upiInputs.style.display = 'none';
+                bankInputs.style.display = 'block';
+                btnUpi.classList.remove('active');
+                btnBank.classList.add('active');
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'home.html';
+        }
+
+        async function submitWithdrawal() {
+            statusMsg.style.display = 'none';
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const holderName = document.getElementById('holder-name').value.trim();
+
+            if (isNaN(amount) || amount < 200) {
+                showMsg("Minimum withdrawal amount is ₹200!", false);
+                return;
+            }
+            if (!holderName) {
+                showMsg("Please enter Account Holder Name!", false);
+                return;
+            }
+
+            // लाइव बैलेंस चेक सुरक्षा: वॉलेट में पर्याप्त पैसा है या नहीं
+            if (amount > userCurrentBalance) {
+                showMsg("Insufficient Balance! You don't have enough money.", false);
+                return;
+            }
+
+            let insertData = {
+                mobile: activeUser,
+                amount: amount,
+                holder_name: holderName,
+                status: 'Pending'
+            };
+
+            if (currentMethod === 'upi') {
+                const upiId = document.getElementById('upi-id').value.trim();
+                if (!upiId) {
+                    showMsg("Please enter your UPI ID!", false);
+                    return;
+                }
+                insertData.upi_id = upiId;
+            } else {
+                const accNum = document.getElementById('account-number').value.trim();
+                const ifsc = document.getElementById('ifsc-code').value.trim();
+                if (!accNum || !ifsc) {
+                    showMsg("Please fill all bank details!", false);
+                    return;
+                }
+                insertData.account_number = accNum;
+                insertData.ifsc_code = ifsc;
+            }
+
+            subBtn.disabled = true;
+            subBtn.innerText = "Submitting...";
+
+            try {
