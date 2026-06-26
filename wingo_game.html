@@ -42,7 +42,7 @@
         .btn-red { background: linear-gradient(135deg, #e03e3e 0%, #ff4d4d 100%); }
         .btn:disabled { background: #444 !important; color: #888; cursor: not-allowed; box-shadow: none !important; }
 
-        /* स्टाइलिश विन हिस्ट्री सेक्शन (5 मैच हाइड/अनहाइड लॉजिक) */
+        /* विन हिस्ट्री और पर्सनल बेट हिस्ट्री सेक्शन */
         .history-section { background: #161626; border-radius: 16px; border: 1px solid rgba(255,255,255,0.03); padding: 15px; margin-top: 25px; text-align: left; width: 100%; }
         .history-title { font-size: 1rem; color: #fff; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; border-left: 3px solid #00ffcc; padding-left: 8px; }
         .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: monospace; font-size: 0.9rem; }
@@ -51,6 +51,11 @@
         .badge-Green { background: #25D366; color: #000; }
         .badge-Red { background: #ff4d4d; color: #fff; }
         .badge-Violet { background: #9b51e0; color: #fff; }
+        
+        /* स्टेटस बैज */
+        .status-Pending { color: #ffaa00; }
+        .status-Win { color: #25D366; font-weight: bold; }
+        .status-Loss { color: #ff4d4d; }
         
         .history-toggle-btn { background: none; border: none; color: #00ffcc; font-weight: bold; cursor: pointer; display: block; margin: 15px auto 0 auto; font-size: 0.9rem; text-decoration: underline; }
 
@@ -102,10 +107,16 @@
         <!-- विन हिस्ट्री सेक्शन -->
         <div class="history-section">
             <div class="history-title">📈 Game Win History</div>
-            <div id="history-container">
-                <!-- लाइव डेटा यहाँ लोड होगा -->
-            </div>
+            <div id="history-container"></div>
             <button class="history-toggle-btn" id="toggle-hist-btn" onclick="toggleHistoryLength()">Show More History</button>
+        </div>
+
+        <!-- न्यू फीचर: यूज़र की अपनी बेट हिस्ट्री सेक्शन -->
+        <div class="history-section" style="margin-top: 20px;">
+            <div class="history-title">👤 My Bet History</div>
+            <div id="my-bets-container">
+                <div style="text-align: center; color: #666; padding: 10px; font-size: 0.9rem;">No bets placed yet.</div>
+            </div>
         </div>
     </div>
 
@@ -134,18 +145,3 @@
                 const { data } = await supabaseClient.from('user').select('balance').eq('mobile', activeUser).maybeSingle();
                 if (data) {
                     userCurrentBalance = parseFloat(data.balance || 0);
-                    document.getElementById('display-balance').innerText = '₹' + userCurrentBalance.toFixed(2);
-                }
-            } catch (err) {}
-        }
-        fetchUserBalance();
-
-        function showMsg(text, isSuccess) {
-            statusMsg.innerText = text;
-            statusMsg.style.display = 'block';
-            statusMsg.className = "msg-box " + (isSuccess ? "msg-success" : "msg-error");
-        }
-
-        function setBetAmount(val, btn) {
-            if (isLocked) return;
-            selectedAmount = val;
