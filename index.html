@@ -33,8 +33,9 @@
         <div id="error-box" class="error-msg"></div>
         <div id="success-box" class="success-msg"></div>
         <form id="auth-form" onsubmit="handleAuth(event)">
-            <input type="tel" id="mobile" placeholder="Enter Mobile Number" required pattern="[0-9]{10}">
-            <input type="password" id="password" placeholder="Enter Password" required minlength="6">
+            <!-- FIX: ब्राउज़र के इनपुट एरर को ठीक करने के लिए id और name लगाया -->
+            <input type="tel" id="mobile" name="mobile" placeholder="Enter Mobile Number" required pattern="[0-9]{10}">
+            <input type="password" id="password" name="password" placeholder="Enter Password" required minlength="6">
             <button type="submit" id="submit-btn">Login</button>
         </form>
         <div class="toggle-link" id="toggle-auth" onclick="toggleMode()">
@@ -48,7 +49,6 @@
 
     <script>
         const supabaseUrl = 'https://supabase.co'; 
-        // आपकी भेजी हुई असली Anon Key यहाँ फिक्स कर दी है
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
         let supabaseClient = null;
 
