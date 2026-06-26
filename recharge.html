@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://supabase.co; img-src 'self' data: blob: https://*.supabase.co;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my77play - Deposit / Recharge</title>
+    <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0b0b13; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .recharge-container { width: 100%; max-width: 420px; background: #161626; padding: 25px; border-radius: 20px; border: 1px solid rgba(0, 255, 204, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+        
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .back-btn { background: none; border: none; color: #00ffcc; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
+        .header h1 { font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px; color: #fff; }
+
+        .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .form-group label { font-size: 0.9rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input { background: #1f1f3a; border: 1px solid #333; padding: 14px; border-radius: 12px; color: #fff; font-size: 1.1rem; outline: none; transition: 0.3s; width: 100%; }
+        .form-group input:focus { border-color: #00ffcc; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
+
+        /* क्विक अमाउंट ग्रिड */
+        .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .amt-btn { background: #1f1f3a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .amt-btn:hover, .amt-btn.active { background: #00ffcc; color: #0b0b13; border-color: #00ffcc; box-shadow: 0 0 10px rgba(0,255,204,0.4); }
+
+        /* यूपीआई पेमेंट बॉक्स */
+        .upi-box { background: rgba(0, 0, 0, 0.2); border: 1px dashed rgba(0, 255, 204, 0.3); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px; }
+        .upi-title { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .upi-id { font-size: 1.1rem; color: #00ffcc; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 10px; word-break: break-all; }
+        .copy-btn { background: #00ffcc; color: #0b0b13; border: none; padding: 6px 15px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; text-transform: uppercase; }
+
+        .submit-btn { background: #00ffcc; color: #0b0b13; border: none; padding: 15px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; width: 100%; margin-top: 10px; }
+        .submit-btn:hover { background: #00ccaa; box-shadow: 0 0 15px rgba(0,255,204,0.4); }
+        .submit-btn:disabled { background: #444; color: #888; cursor: not-allowed; box-shadow: none; }
+
+        .msg-box { padding: 12px; border-radius: 8px; font-size: 0.95rem; display: none; margin-bottom: 15px; text-align: left; }
+        .msg-error { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.2); }
+        .msg-success { color: #25D366; background: rgba(37, 211, 102, 0.1); border: 1px solid rgba(37, 211, 102, 0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="recharge-container">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h1>Deposit / Recharge</h1>
+        </div>
+
+        <div id="status-msg" class="msg-box"></div>
+
+        <!-- स्टेप 1: अमाउंट सिलेक्ट करना -->
+        <div class="form-group">
+            <label>Enter Deposit Amount (₹)</label>
+            <input type="number" id="recharge-amount" placeholder="Minimum ₹100" min="100" value="100">
+        </div>
+
+        <div class="amount-grid">
+            <button class="amt-btn active" onclick="setAmount(100, this)">100</button>
+            <button class="amt-btn" onclick="setAmount(300, this)">300</button>
+            <button class="amt-btn" onclick="setAmount(500, this)">500</button>
+            <button class="amt-btn" onclick="setAmount(1000, this)">1000</button>
+        </div>
+
+        <!-- स्टेप 2: आपकी यूपीआई आईडी शो होना -->
+        <div class="upi-box">
+            <div class="upi-title">Pay on this Admin UPI ID</div>
+            <!-- यहाँ आप अपनी असली UPI ID बदल सकते हैं -->
+            <div class="upi-id" id="admin-upi">admin77play@ybl</div>
+            <button class="copy-btn" onclick="copyUPI()">Copy UPI ID</button>
+        </div>
+
+        <!-- स्टेप 3: यूटीआर नंबर दर्ज करना -->
+        <div class="form-group">
+            <label>Enter 12-Digit UTR / Transaction ID</label>
+            <input type="text" id="utr-number" placeholder="Enter UTR after payment" maxlength="12" pattern="[0-9]{12}">
+        </div>
+
+        <button class="submit-btn" id="sub-btn" onclick="submitRecharge()">Submit Request</button>
+    </div>
+
+    <script>
+        const activeUser = localStorage.getItem('my77play_user');
+        if (!activeUser) { window.location.href = 'index.html'; }
+
+        const supabaseUrl = 'https://supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const statusMsg = document.getElementById('status-msg');
+        const subBtn = document.getElementById('sub-btn');
+
+        function showMsg(text, isSuccess) {
+            statusMsg.innerText = text;
+            statusMsg.style.display = 'block';
+            statusMsg.className = "msg-box " + (isSuccess ? "msg-success" : "msg-error");
+        }
+
+        function setAmount(val, btn) {
+            document.getElementById('recharge-amount').value = val;
+            document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function copyUPI() {
+            const upiText = document.getElementById('admin-upi').innerText;
+            navigator.clipboard.writeText(upiText);
+            alert("UPI ID Copied! Open PhonePe/Paytm to pay.");
+        }
+
+        function goBack() {
+            window.location.href = 'home.html';
+        }
+
+        async function submitRecharge() {
+            statusMsg.style.display = 'none';
+            const amount = parseFloat(document.getElementById('recharge-amount').value);
+            const utr = document.getElementById('utr-number').value.trim();
+
+            if (isNaN(amount) || amount < 100) {
+                showMsg("Minimum recharge amount is ₹100!", false);
+                return;
+            }
+            if (utr.length !== 12 || isNaN(utr)) {
+                showMsg("Please enter a valid 12-digit numeric UTR number!", false);
+                return;
+            }
+
+            subBtn.disabled = true;
+            subBtn.innerText = "Submitting...";
+
+            try {
+                // सुप्रबेस की नई 'recharges' टेबल में डेटा सेव करना
+                const { error } = await supabaseClient.from('recharges').insert([
+                    { mobile: activeUser, amount: amount, utr: utr, status: 'Pending' }
+                ]);
+
+                if (error) {
+                    if (error.message.includes('unique_utr') || error.code === '23505') {
+                        showMsg("This UTR has already been submitted!", false);
+                    } else {
+                        showMsg("Submission failed: " + error.message, false);
+                    }
+                    subBtn.disabled = false;
+                    subBtn.innerText = "Submit Request";
+                } else {
+                    showMsg("Recharge Request Submitted Successfully! Admin will approve soon.", true);
+                    document.getElementById('utr-number').value = "";
+                    setTimeout(() => { window.location.href = 'home.html'; }, 2000);
+                }
+            } catch(err) {
+                showMsg("Network issue, please try again.", false);
+                subBtn.disabled = false;
+                subBtn.innerText = "Submit Request";
+            }
+        }
+    </script>
+</body>
+</html>
