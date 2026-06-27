@@ -49,7 +49,7 @@
     <div class="main-container">
         <div class="user-header">
             <div class="user-info">
-                <!-- ID यहाँ लोड होगी -->
+                <!-- डिफ़ॉल्ट रूप से लोडिंग दिखाएगा, फिर तुरंत आईडी रेंडर होगी -->
                 <div class="user-id" id="user-permanent-id">ID: Loading...</div>
             </div>
             <div class="wallet-box">
@@ -88,7 +88,7 @@
         const activeUser = localStorage.getItem('my77play_user');
         if (!activeUser) { window.location.href = 'index.html'; }
         
-        // शुरुआत में बैकअप लोड करना
+        // मैमोरी से आईडी तुरंत शो करने का लॉजिक (डैश '-' को फ़िल्टर करते हुए)
         let savedId = localStorage.getItem('my77play_id');
         if (savedId && savedId !== 'undefined' && savedId !== '-') { 
             document.getElementById('user-permanent-id').innerText = "ID: " + savedId; 
@@ -119,18 +119,17 @@
                 if (!supabaseClient) initSupabase();
                 if (!supabaseClient) return;
 
-                // 1. लाइव व्हाट्सएप सपोर्ट लोड करना
+                // 1. लाइव व्हाट्सएप लोड करना
                 const { data: adminData } = await supabaseClient.from('admin_settings').select('whatsapp_number').maybeSingle();
                 if (adminData && adminData.whatsapp_number) { 
                     liveWhatsappLink = "https://wa.me" + adminData.whatsapp_number; 
                 }
 
-                // 2. लाइव बैलेंस और प्लेयर आईडी सीधे डेटाबेस से सिंक करना
+                // 2. लाइव रैंडम प्लेयर आईडी और बैलेंस सीधे सुपाबेस से खींचना
                 const { data: userData } = await supabaseClient.from('users').select('balance, player_id').eq('mobile', activeUser).maybeSingle();
                 if (userData) {
-                    // बैलेंस दिखाना
                     document.getElementById('main-balance').innerText = "₹" + parseFloat(userData.balance ?? 0).toFixed(2);
                     localStorage.setItem('my77play_balance', String(userData.balance ?? 0));
                     
-                    // अगर लोकल में आईडी गायब थी, तो सीधे सुपाबेस वाली आईडी स्क्रीन पर डालना
-                    const finalId = userData.player_id || activeUser;
+                    // सिर्फ तभी आईडी सेट करेगा जब वह खाली न हो
+                    if(userData.player_id) {
