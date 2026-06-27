@@ -4,39 +4,96 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Dashboard</title>
-  <!-- सुप्रबेस का बिल्कुल पक्का फुल CDN लिंक जो वर्सेल पर कभी फेल नहीं होगा -->
-  <script src="https://jsdelivr.net"></script>
   <style>
-    body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; color: #fff; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
-    .mobile-container { width: 100%; max-width: 390px; min-height: 100vh; background: #131322; box-shadow: 0 0 30px rgba(0,0,0,0.8); padding: 20px 20px 90px 20px; box-sizing: border-box; position: relative; }
+    /* पीसी पर पेज को बीच में और मोबाइल जैसा रखने के लिए मुख्य स्टाइल */
+    body { 
+      background: #0f0f1a; 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      margin: 0; 
+      color: #fff; 
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    
+    /* मुख्य मोबाइल कंटेनर (सिर्फ फोन साइज की स्क्रीन) */
+    .mobile-container {
+      width: 100%;
+      max-width: 390px; 
+      min-height: 100vh;
+      background: #131322;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      padding: 20px 20px 90px 20px; /* नीचे बटन के लिए स्पेस छोड़ा है */
+      box-sizing: border-box;
+      position: relative;
+    }
+    
+    /* टॉप बार जहाँ प्लेयर ID और बैलेंस दिखेगा */
     .top-bar { display: flex; justify-content: space-between; align-items: center; background: #1c1c27; padding: 12px 15px; border-radius: 12px; border: 1px solid #00ffcc; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0, 255, 204, 0.2); }
     .player-info { display: flex; flex-direction: column; gap: 3px; }
     .player-id-label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
     .player-id-value { font-size: 1.1rem; color: #00ffcc; font-weight: bold; text-shadow: 0 0 8px rgba(0, 255, 204, 0.4); }
+    
     .right-section { display: flex; align-items: center; }
     .balance-box { background: #2c2c3e; padding: 6px 12px; border-radius: 8px; font-weight: bold; border: 1px solid #444; font-size: 0.95rem; }
     .balance-box span { color: #25D366; }
+    
     h2 { font-size: 1.3rem; margin-top: 10px; color: #00ffcc; text-shadow: 0 0 5px rgba(0, 255, 204, 0.2); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* गेम्स ग्रिड - असली नियॉन गेमिंग लुक */
     .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
     .game-card { background: #1c1c27; border: 2px solid #2c2c3e; padding: 15px 10px; border-radius: 16px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff; display: flex; flex-direction: column; justify-content: space-between; align-items: center; height: 160px; position: relative; overflow: hidden; }
+    
     #game-wingo { border-color: #ff0055; box-shadow: inset 0 0 10px rgba(255, 0, 85, 0.2); }
     #game-mine { border-color: #00ffcc; box-shadow: inset 0 0 10px rgba(0, 255, 204, 0.2); }
     #game-headtail { border-color: #ffaa00; box-shadow: inset 0 0 10px rgba(255, 170, 0, 0.2); }
     #game-slot { border-color: #9900ff; box-shadow: inset 0 0 10px rgba(153, 0, 255, 0.2); }
+    
     .game-icon { font-size: 2.5rem; margin-bottom: 5px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
     .game-card h3 { margin: 0; font-size: 0.95rem; font-weight: bold; letter-spacing: 0.5px; }
+    
+    /* गेम्स के नीचे चमकने वाला PLAY NOW बटन */
     .play-btn { background: #00ffcc; color: #0f0f1a; border: none; padding: 6px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-top: 8px; cursor: pointer; box-shadow: 0 0 10px rgba(0, 255, 204, 0.4); width: 80%; transition: 0.2s; pointer-events: none; }
     #game-wingo .play-btn { background: #ff0055; color: #fff; box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); }
     #game-headtail .play-btn { background: #ffaa00; color: #fff; box-shadow: 0 0 10px rgba(255, 170, 0, 0.4); }
     #game-slot .play-btn { background: #9900ff; color: #fff; box-shadow: 0 0 10px rgba(153, 0, 255, 0.4); }
-    
-    /* बटन बार बिल्कुल स्क्रीन पर सबसे नीचे चिपका रहेगा */
-    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 390px; background: #1c1c27; display: flex; justify-content: space-around; align-items: center; padding: 12px 0; border-top: 2px solid #00ffcc; box-shadow: 0 -5px 20px rgba(0,0,0,0.6); z-index: 999; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; text-decoration: none; font-size: 0.85rem; font-weight: bold; cursor: pointer; background: none; border: none; transition: 0.3s; }
+
+    /* स्क्रीन पर सबसे नीचे चिपका रहने वाला बटन बार (Bottom Navbar) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 390px;
+      background: #1c1c27;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 12px 0;
+      border-top: 2px solid #00ffcc;
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.6);
+      z-index: 999;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #888;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: none;
+      border: none;
+      transition: 0.3s;
+    }
     .nav-item.active { color: #00ffcc; text-shadow: 0 0 8px rgba(0, 255, 204, 0.4); }
     .nav-item:hover { color: #fff; }
     .nav-item span { font-size: 1.4rem; margin-bottom: 3px; }
-    
+
+    /* प्रोफाइल पॉप-अप बॉक्स (Modal) */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
     .modal-content { background: #1c1c27; border: 1px solid #00ffcc; padding: 25px; border-radius: 16px; width: 85%; max-width: 320px; text-align: left; box-shadow: 0 8px 32px rgba(0,0,0,0.6); position: relative; }
     .modal-header { font-size: 1.3rem; color: #00ffcc; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; text-align: center; border-bottom: 1px solid #2c2c3e; padding-bottom: 10px; }
@@ -44,17 +101,21 @@
     .modal-row strong { color: #fff; }
     .close-btn { position: absolute; top: 12px; right: 15px; color: #aaa; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
     .close-btn:hover { color: #ff4d4d; }
+    
+    /* वॉलेट बटन्स */
     .wallet-actions { display: flex; gap: 10px; margin-top: 20px; }
     .action-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; text-align: center; text-decoration: none; }
     .recharge-btn { background: #25D366; color: #fff; }
     .recharge-btn:hover { background: #1ebd54; box-shadow: 0 0 10px rgba(37, 211, 102, 0.4); }
     .withdraw-btn { background: #ffaa00; color: #fff; }
     .withdraw-btn:hover { background: #e09600; box-shadow: 0 0 10px rgba(255, 170, 0, 0.4); }
+
     .logout-btn { background: #ff4d4d; color: #fff; border: none; padding: 10px; border-radius: 8px; width: 100%; font-size: 0.95rem; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; text-transform: uppercase; }
     .logout-btn:hover { background: #cc3333; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
   </style>
 </head>
 <body>
+
   <div class="mobile-container">
     <div class="top-bar">
       <div class="player-info">
@@ -65,18 +126,46 @@
         <div class="balance-box">₹ <span id="display-balance">0.00</span></div>
       </div>
     </div>
+
     <h2>🎮 Select Game</h2>
+    
     <div class="games-grid">
-      <a href="wingo_game.html" id="game-wingo" class="game-card"><div class="game-icon">🎨</div><h3>Colour Prediction</h3><button class="play-btn">Play Now</button></a>
-      <a href="mine_game.html" id="game-mine" class="game-card"><div class="game-icon">💣</div><h3>Bomb Mine</h3><button class="play-btn">Play Now</button></a>
-      <a href="head_tail.html" id="game-headtail" class="game-card"><div class="game-icon">🪙</div><h3>Head Tail</h3><button class="play-btn">Play Now</button></a>
-      <a href="head_tail.html" id="game-slot" class="game-card"><div class="game-icon">🎰</div><h3>Casino Slot</h3><button class="play-btn">Play Now</button></a>
+      <a href="wingo_game.html" id="game-wingo" class="game-card">
+        <div class="game-icon">🎨</div>
+        <h3>Colour Prediction</h3>
+        <button class="play-btn">Play Now</button>
+      </a>
+      
+      <a href="mine_game.html" id="game-mine" class="game-card">
+        <div class="game-icon">💣</div>
+        <h3>Bomb Mine</h3>
+        <button class="play-btn">Play Now</button>
+      </a>
+      
+      <a href="head_tail.html" id="game-headtail" class="game-card">
+        <div class="game-icon">🪙</div>
+        <h3>Head Tail</h3>
+        <button class="play-btn">Play Now</button>
+      </a>
+      
+      <a href="head_tail.html" id="game-slot" class="game-card">
+        <div class="game-icon">🎰</div>
+        <h3>Casino Slot</h3>
+        <button class="play-btn">Play Now</button>
+      </a>
     </div>
+
     <div class="bottom-nav">
-      <a href="home.html" class="nav-item active"><span>🏠</span>Home</a>
-      <button class="nav-item" onclick="openProfile()"><span>👤</span>Profile</button>
+      <a href="home.html" class="nav-item active">
+        <span>🏠</span>Home
+      </a>
+      <button class="nav-item" onclick="openProfile()">
+        <span>👤</span>Profile
+      </button>
     </div>
+
   </div>
+
   <div id="profile-modal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeProfile()">&times;</span>
@@ -85,6 +174,7 @@
       <div class="modal-row"><strong>Mobile:</strong> <span id="prof-mobile">---</span></div>
       <div class="modal-row"><strong>Player ID:</strong> <span id="prof-id">---</span></div>
       <div class="modal-row"><strong>Wallet Balance:</strong> <span id="prof-balance" style="color: #25D366; font-weight: bold;">₹0.00</span></div>
+      
       <div class="wallet-actions">
         <a href="recharge.html" class="action-btn recharge-btn">Recharge</a>
         <a href="withdrawal.html" class="action-btn withdraw-btn">Withdrawal</a>
@@ -169,7 +259,7 @@
           currentUserData = userData; 
 
           // अगर एडमिन ने पहले से पूरे अकाउंट को ब्लॉक कर दिया है
-          if (currentUserData.is_blocked === true) {
+          if (currentUserData.is_blocked === true || String(currentUserData.is_blocked).toUpperCase() === "TRUE") {
             alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है! कृपया कस्टमर सपोर्ट से संपर्क करें।");
             handleLogout();
             return;
@@ -180,7 +270,7 @@
           localStorage.setItem('my77play_id', currentUserData.player_id || '');
           localStorage.setItem('my77play_name', currentUserData.name || '');
 
-          // ⚡ सुपाबेस लाइव रियलटाइम लिसनर (बिना रिफ्रेश किए बैलेंस और ब्लॉक अपडेट करने के लिए) ⚡
+          // ⚡ सुपाबेस लाइव रियलटाइम लिसनर (बिना रिफ्रेश किए बैलेंस, ब्लॉक और लॉक अपडेट करने के लिए) ⚡
           supabaseClient
             .channel('table_realtime_status')
             .on('postgres_changes', { 
@@ -193,7 +283,7 @@
                 currentUserData = payload.new; 
                 
                 // अगर लाइव बैठे-बैठे तुरंत ब्लॉक कर दिया
-                if (currentUserData.is_blocked === true) {
+                if (currentUserData.is_blocked === true || String(currentUserData.is_blocked).toUpperCase() === "TRUE") {
                   alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है! कृपया कस्टमर सपोर्ट से संपर्क करें।");
                   handleLogout();
                   return;
@@ -207,37 +297,35 @@
 
           // गेम्स क्लिक करने पर लाइव लॉक चेक करने का बिल्कुल पक्का सिस्टम
           document.getElementById('game-wingo').onclick = function(e) {
-            if(currentUserData && currentUserData.lock_wingo === true) { 
+            if (currentUserData && (currentUserData.lock_wingo === true || String(currentUserData.lock_wingo).toUpperCase() === "TRUE")) { 
               e.preventDefault(); 
               alert("यह गेम आपके लिए एडमिन द्वारा अस्थाई रूप से लॉक किया गया है!"); 
             }
           };
 
           document.getElementById('game-mine').onclick = function(e) {
-            if(currentUserData && currentUserData.lock_mine === true) { 
+            if (currentUserData && (currentUserData.lock_mine === true || String(currentUserData.lock_mine).toUpperCase() === "TRUE")) { 
               e.preventDefault(); 
               alert("यह गेम आपके लिए एडमिन द्वारा अस्थाई रूप से लॉक किया गया है!"); 
             }
           };
 
           document.getElementById('game-headtail').onclick = function(e) {
-            if(currentUserData && currentUserData.lock_head_tail === true) { 
+            if (currentUserData && (currentUserData.lock_head_tail === true || String(currentUserData.lock_head_tail).toUpperCase() === "TRUE")) { 
               e.preventDefault(); 
               alert("यह गेम आपके लिए एडमिन द्वारा अस्थाई रूप से लॉक किया गया है!"); 
             }
           };
 
           document.getElementById('game-slot').onclick = function(e) {
-            if(currentUserData && currentUserData.lock_slot === true) { 
+            if (currentUserData && (currentUserData.lock_slot === true || String(currentUserData.lock_slot).toUpperCase() === "TRUE")) { 
               e.preventDefault(); 
               alert("यह गेम आपके लिए एडमिन द्वारा अस्थाई रूप से लॉक किया गया है!"); 
             }
           };
 
         } else {
-          // अगर सुपाबेस में आईडी ब्लॉक है और वह फिर से लॉगिन करने की कोशिश करे
-          alert("लॉगिन विफल! आपका अकाउंट ब्लॉक है। कृपया कस्टमर सपोर्ट से संपर्क करें।");
-          handleLogout();
+          console.log("Database me number nahi mila. Clean Number:", cleanMobileNumber);
         }
       } catch (err) {
         console.log("Error Syncing data from Supabase:", err);
