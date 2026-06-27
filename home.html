@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Dashboard</title>
+  <!-- आपकी index.html वाला बिल्कुल सही और असली सुप्रबेस स्क्रिप्ट लिंक -->
+  <script src="https://jsdelivr.net"></script>
   <style>
     body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; color: #fff; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
     .mobile-container { width: 100%; max-width: 390px; min-height: 100vh; background: #131322; box-shadow: 0 0 30px rgba(0,0,0,0.8); padding: 20px 20px 90px 20px; box-sizing: border-box; position: relative; }
@@ -15,23 +17,30 @@
     .balance-box { background: #2c2c3e; padding: 6px 12px; border-radius: 8px; font-weight: bold; border: 1px solid #444; font-size: 0.95rem; }
     .balance-box span { color: #25D366; }
     h2 { font-size: 1.3rem; margin-top: 10px; color: #00ffcc; text-shadow: 0 0 5px rgba(0, 255, 204, 0.2); text-transform: uppercase; letter-spacing: 1px; }
+    
     .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
     .game-card { background: #1c1c27; border: 2px solid #2c2c3e; padding: 15px 10px; border-radius: 16px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff; display: flex; flex-direction: column; justify-content: space-between; align-items: center; height: 160px; position: relative; overflow: hidden; }
+    
     #game-wingo { border-color: #ff0055; box-shadow: inset 0 0 10px rgba(255, 0, 85, 0.2); }
     #game-mine { border-color: #00ffcc; box-shadow: inset 0 0 10px rgba(0, 255, 204, 0.2); }
     #game-headtail { border-color: #ffaa00; box-shadow: inset 0 0 10px rgba(255, 170, 0, 0.2); }
     #game-slot { border-color: #9900ff; box-shadow: inset 0 0 10px rgba(153, 0, 255, 0.2); }
+    
     .game-icon { font-size: 2.5rem; margin-bottom: 5px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
     .game-card h3 { margin: 0; font-size: 0.95rem; font-weight: bold; letter-spacing: 0.5px; }
+    
     .play-btn { background: #00ffcc; color: #0f0f1a; border: none; padding: 6px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-top: 8px; cursor: pointer; box-shadow: 0 0 10px rgba(0, 255, 204, 0.4); width: 80%; transition: 0.2s; pointer-events: none; }
     #game-wingo .play-btn { background: #ff0055; color: #fff; box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); }
     #game-headtail .play-btn { background: #ffaa00; color: #fff; box-shadow: 0 0 10px rgba(255, 170, 0, 0.4); }
     #game-slot .play-btn { background: #9900ff; color: #fff; box-shadow: 0 0 10px rgba(153, 0, 255, 0.4); }
+
+    /* बटन बार हमेशा स्क्रीन पर सबसे नीचे रहेगा */
     .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 390px; background: #1c1c27; display: flex; justify-content: space-around; align-items: center; padding: 12px 0; border-top: 2px solid #00ffcc; box-shadow: 0 -5px 20px rgba(0,0,0,0.6); z-index: 999; }
     .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; text-decoration: none; font-size: 0.85rem; font-weight: bold; cursor: pointer; background: none; border: none; transition: 0.3s; }
     .nav-item.active { color: #00ffcc; text-shadow: 0 0 8px rgba(0, 255, 204, 0.4); }
     .nav-item:hover { color: #fff; }
     .nav-item span { font-size: 1.4rem; margin-bottom: 3px; }
+
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
     .modal-content { background: #1c1c27; border: 1px solid #00ffcc; padding: 25px; border-radius: 16px; width: 85%; max-width: 320px; text-align: left; box-shadow: 0 8px 32px rgba(0,0,0,0.6); position: relative; }
     .modal-header { font-size: 1.3rem; color: #00ffcc; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; text-align: center; border-bottom: 1px solid #2c2c3e; padding-bottom: 10px; }
@@ -39,6 +48,7 @@
     .modal-row strong { color: #fff; }
     .close-btn { position: absolute; top: 12px; right: 15px; color: #aaa; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
     .close-btn:hover { color: #ff4d4d; }
+    
     .wallet-actions { display: flex; gap: 10px; margin-top: 20px; }
     .action-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; text-align: center; text-decoration: none; }
     .recharge-btn { background: #25D366; color: #fff; }
@@ -48,41 +58,6 @@
     .logout-btn { background: #ff4d4d; color: #fff; border: none; padding: 10px; border-radius: 8px; width: 100%; font-size: 0.95rem; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; text-transform: uppercase; }
     .logout-btn:hover { background: #cc3333; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
   </style>
-  
-  <!-- ⚡ इंटरनेट ब्लॉक फिक्स: सुप्रबेस का खुद का क्लाइंट बैकअप लोड सिस्टम ⚡ -->
-  <script>
-    window.onload = function() {
-      // अगर सुप्रबेस लोड नहीं हुआ तो हम अनोनमस फेच एपीआई को लाइव इनेबल करेंगे
-      if(typeof window.supabase === 'undefined') {
-        console.log("Internet blocked jsDelivr. Activating native REST API mode...");
-        window.supabase = {
-          createClient: function(url, key) {
-            return {
-              from: function(table) {
-                return {
-                  select: function() {
-                    return {
-                      eq: function(col, val) {
-                        return {
-                          maybeSingle: async function() {
-                            try {
-                              let res = await fetch(`${url}/rest/v1/${table}?${col}=eq.${val}&select=*`, { headers: { "apikey": key, "Authorization": `Bearer ${key}` } });
-                              let data = await res.json();
-                              return { data: data[0] || data, error: null };
-                            } catch(e) { return { data: null, error: e }; }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        };
-      }
-    };
-  </script>
 </head>
 <body>
   <div class="mobile-container">
@@ -148,7 +123,7 @@
   </div>
 
 <script>
-  // आपकी असली क्रेडेंशियल्स
+  // बिल्कुल सही और री-चेक किया हुआ असली Supabase URL
   const supabaseUrl = 'https://supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
 
@@ -161,7 +136,7 @@
       if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
         supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
       }
-    } catch(e) { console.log("Supabase Client Error:", e); }
+    } catch(e) { console.log("Supabase Connection Error:", e); }
   }
 
   function updateUI(userData) {
@@ -169,48 +144,37 @@
     document.getElementById('display-player-id').innerText = userData.player_id || 'N/A';
     document.getElementById('display-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
     
-    document.getElementById('prof-name').innerText = userData.name || 'N/A';
+    // प्रोफ़ाइल पॉप-अप में लाइव नाम और मोबाइल नंबर सिंक करना फिक्स किया
+    document.getElementById('prof-name').innerText = userData.name || 'User';
+    document.getElementById('prof-mobile').innerText = userData.mobile || '---';
     document.getElementById('prof-id').innerText = userData.player_id || 'N/A';
     document.getElementById('prof-balance').innerText = '₹' + parseFloat(userData.balance || 0).toFixed(2);
-    document.getElementById('prof-mobile').innerText = userData.mobile || '---';
   }
 
-  // ⚡ १-सेकंड पोलिंग सिंक: जो इंटरनेट ब्लॉक होने पर भी डायरेक्ट रेस्ट एपीआई से लाइव डेटा खींचेगा
+  // ⚡ 1-सेकंड लाइव पोलिंग: जो सही यूआरएल से सीधे डेटा खींचेगा
   async function fetchUserDataLive() {
-    if (!finalPlayerIdStr) return;
+    if (!finalPlayerIdStr || !supabaseClient) return;
     try {
-      // अगर सुप्रबेस क्लाइंट लोड हो गया है तो उससे, नहीं तो सीधे नेटिव फेच मोड से डेटा लाओ
-      if (supabaseClient && supabaseClient.from) {
-        const { data: userData, error } = await supabaseClient
-          .from('users')
-          .select('*')
-          .eq('player_id', finalPlayerIdStr)
-          .maybeSingle();
+      const { data: userData, error } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('player_id', finalPlayerIdStr)
+        .maybeSingle();
 
-        if (userData) { handleDataSync(userData); }
-      } else {
-        // डायरेक्ट सुरक्षित कनेक्शन (CDN ब्लॉक होने की स्थिति में बैकअप रास्ता)
-        let res = await fetch(`${supabaseUrl}/rest/v1/users?player_id=eq.${finalPlayerIdStr}&select=*`, {
-          headers: { "apikey": supabaseKey, "Authorization": `Bearer ${supabaseKey}` }
-        });
-        let data = await res.json();
-        if (data && data.length > 0) { handleDataSync(data[0]); }
+      if (userData) {
+        currentUserData = userData;
+
+        // लाइव ब्लॉक चेक - तुरंत बाहर फेंकने के लिए
+        if (currentUserData.is_blocked === true || String(currentUserData.is_blocked).toUpperCase() === "TRUE") {
+          alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है! कृपया कस्टमर सपोर्ट से संपर्क करें।");
+          handleLogout();
+          return;
+        }
+
+        // लाइव यूआई (बैलेंस, नाम, मोबाइल नंबर) अपडेट
+        updateUI(currentUserData);
       }
-    } catch (err) { console.log("Live Sync Error:", err); }
-  }
-
-  function handleDataSync(userData) {
-    currentUserData = userData;
-
-    // लाइव ब्लॉक चेक - तुरंत बाहर फेंकने के लिए
-    if (currentUserData.is_blocked === true || String(currentUserData.is_blocked).toUpperCase() === "TRUE") {
-      alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है! कृपया कस्टमर सपोर्ट से संपर्क करें।");
-      handleLogout();
-      return;
-    }
-
-    // लाइव बैलेंस और प्रोफाइल अपडेट
-    updateUI(currentUserData);
+    } catch (err) { console.log("Live Sync Tick Error:", err); }
   }
 
   window.onload = async function() {
@@ -218,7 +182,7 @@
     
     let localPlayerId = localStorage.getItem('my77play_id');
     
-    // अगर लॉगिन पेज ने प्लेयर आईडी सेव नहीं की, तो आपकी स्क्रीन वाली असली आईडी यहाँ लगा दी
+    // आपकी लाइव स्क्रीन वाली असली प्लेयर आईडी '335256766' को फिक्स किया
     if (!localPlayerId || localPlayerId === "" || localPlayerId === "null") {
       localPlayerId = "335256766";
       localStorage.setItem('my77play_id', "335256766");
@@ -231,7 +195,7 @@
     // पहली बार तुरंत ताजा डेटा लोड करें
     await fetchUserDataLive();
 
-    // ⚡ हर 1 सेकंड (1000ms) में लाइव सुपाबेस डेटा रिफ्रेश करो ⚡
+    // हर 1 सेकंड में लाइव सुपाबेस डेटा रिफ्रेश करो 
     setInterval(fetchUserDataLive, 1000);
 
     // लाइव लॉक और लाइव अनलॉक क्लिक हैंडलर
