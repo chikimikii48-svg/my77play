@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- CSP को अपडेट किया गया ताकि कनेक्शन न रुके -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Premium Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0b0b13; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding-bottom: 90px; display: flex; flex-direction: column; align-items: center; }
@@ -46,7 +45,6 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- यूज़र हेडर सेक्शन -->
         <div class="user-header">
             <div class="user-info">
                 <div class="user-id" id="user-permanent-id">ID: --------</div>
@@ -57,7 +55,6 @@
             </div>
         </div>
 
-        <!-- गेम्स सेक्शन -->
         <div id="games-section">
             <h2>All Games</h2>
             <div class="games-grid">
@@ -68,7 +65,6 @@
             </div>
         </div>
 
-        <!-- प्रोफ़ाइल सेक्शन -->
         <div id="profile-section">
             <h2>My Profile</h2>
             <div class="profile-menu">
@@ -80,53 +76,58 @@
         </div>
     </div>
 
-    <!-- बॉटम नेविगेशन बार -->
     <div class="bottom-nav">
         <div class="nav-item active" id="nav-games" onclick="switchTab('games')"><span class="nav-icon">🎮</span><span>Games</span></div>
         <div class="nav-item" id="nav-profile" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span>Profile</span></div>
     </div>
 
     <script>
-        // ऑथेंटिकेशन चेक
+        // ऑथेंटिकेशन और लोकल ID लोड (पेज लोड होने से पहले ही रन होगा ताकि ID तुरंत दिखे)
         const activeUser = localStorage.getItem('my77play_user');
         if (!activeUser) { window.location.href = 'index.html'; }
         
-        // परमानेंट आईडी लोड करना
         let savedId = localStorage.getItem('my77play_id');
         if (savedId) { document.getElementById('user-permanent-id').innerText = "ID: " + savedId; }
-        
-        // सुपाबेस क्रेडेंशियल्स (शॉर्टकट की समस्या को दूर करते हुए पूरा URL)
-        const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
+
+        // क्रेडेंशियल्स (यहाँ आपका पूरा यूआरएल सेट है)
+        const supabaseUrl = 'https://supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
         
+        let supabaseClient = null;
         let liveWhatsappLink = "https://wa.me";
 
-        // डेटाबेस से लाइव सेटिंग्स और लाइव बैलेंस लोड करना
+        function initSupabase() {
+            if (!supabaseClient && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+            }
+        }
+
+        // DOMContentLoaded का इस्तेमाल किया ताकि बटन और सुपाबेस तुरंत एक्टिव हो जाएं
+        window.addEventListener('DOMContentLoaded', () => {
+            initSupabase();
+            loadSettings();
+        });
+
         async function loadSettings() {
             try {
-                // 1. लाइव व्हाट्सएप सपोर्ट लिंक लोड करना
+                initSupabase();
+                if (!supabaseClient) return;
+
+                // 1. लाइव व्हाट्सएप सपोर्ट लोड करना
                 const { data: adminData } = await supabaseClient.from('admin_settings').select('whatsapp_number').maybeSingle();
                 if (adminData && adminData.whatsapp_number) { 
                     liveWhatsappLink = "https://wa.me" + adminData.whatsapp_number; 
                 }
 
-                // 2. लाइव यूज़र बैलेंस लोड करना
+                // 2. लाइव बैलेंस लोड करना
                 const { data: userData } = await supabaseClient.from('users').select('balance').eq('mobile', activeUser).maybeSingle();
                 if (userData) {
                     document.getElementById('main-balance').innerText = "₹" + parseFloat(userData.balance ?? 0).toFixed(2);
                     localStorage.setItem('my77play_balance', String(userData.balance ?? 0));
                 }
             } catch (e) {
-                console.log("Error loading dynamic settings, falling back to local memory.");
+                console.log("Error loading, falling back to local storage data.");
                 let localBal = localStorage.getItem('my77play_balance') || "0";
                 document.getElementById('main-balance').innerText = "₹" + parseFloat(localBal).toFixed(2);
             }
         }
-
-        window.onload = function() {
-            loadSettings();
-        };
-
-        // टैब स्विचिंग (गेम्स और प्रोफाइल के बीच बदलना)
-        function switchTab(tab) {
