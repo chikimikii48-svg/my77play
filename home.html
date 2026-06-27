@@ -7,7 +7,7 @@
   <!-- Supabase Library CDN -->
   <script src="https://jsdelivr.net"></script>
   <style>
-    /* मोबाइल जैसा लेआउट रखने के लिए मुख्य स्टाइल */
+    /* पीसी पर पेज को बीच में और मोबाइल जैसा रखने के लिए */
     body { 
       background: #0f0f1a; 
       font-family: 'Segoe UI', Arial, sans-serif; 
@@ -19,16 +19,15 @@
       min-height: 100vh;
     }
     
-    /* मुख्य मोबाइल कंटेनर */
+    /* मुख्य मोबाइल कंटेनर (सिर्फ फोन साइज की स्क्रीन - पहले जैसा सेम) */
     .mobile-container {
       width: 100%;
-      max-width: 390px; 
+      max-width: 390px; /* एकदम परफेक्ट मोबाइल चौड़ाई */
       min-height: 100vh;
       background: #131322;
       box-shadow: 0 0 30px rgba(0,0,0,0.8);
-      padding: 20px 20px 80px 20px; /* नीचे बटन के लिए स्पेस छोड़ा है */
+      padding: 20px;
       box-sizing: border-box;
-      position: relative;
     }
     
     /* टॉप बार जहाँ प्लेयर ID और बैलेंस दिखेगा */
@@ -37,9 +36,12 @@
     .player-id-label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
     .player-id-value { font-size: 1.1rem; color: #00ffcc; font-weight: bold; text-shadow: 0 0 8px rgba(0, 255, 204, 0.4); }
     
-    .right-section { display: flex; align-items: center; }
+    /* बैलेंस और प्रोफाइल बटन */
+    .right-section { display: flex; align-items: center; gap: 10px; }
     .balance-box { background: #2c2c3e; padding: 6px 12px; border-radius: 8px; font-weight: bold; border: 1px solid #444; font-size: 0.95rem; }
     .balance-box span { color: #25D366; }
+    .profile-btn { background: #00ffcc; color: #0f0f1a; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-size: 0.85rem; }
+    .profile-btn:hover { background: #00ccaa; box-shadow: 0 0 10px rgba(0,255,204,0.4); }
     
     h2 { font-size: 1.3rem; margin-top: 10px; color: #00ffcc; text-shadow: 0 0 5px rgba(0, 255, 204, 0.2); }
 
@@ -48,38 +50,6 @@
     .game-card { background: #1c1c27; border: 1px solid #2c2c3e; padding: 15px 10px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff; }
     .game-card:hover { border-color: #00ffcc; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 255, 204, 0.2); }
     .game-card h3 { margin: 8px 0 0 0; font-size: 0.95rem; }
-
-    /* नीचे चिपका रहने वाला बटन बार (Bottom Navigation) */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 390px;
-      background: #1c1c27;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 10px 0;
-      border-top: 1px solid #00ffcc;
-      box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
-      z-index: 999;
-    }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #aaa;
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: bold;
-      cursor: pointer;
-      background: none;
-      border: none;
-    }
-    .nav-item.active, .nav-item:hover { color: #00ffcc; }
-    .nav-item span { font-size: 1.5rem; margin-bottom: 2px; }
 
     /* प्रोफाइल पॉप-अप बॉक्स (Modal) */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
@@ -90,7 +60,7 @@
     .close-btn { position: absolute; top: 12px; right: 15px; color: #aaa; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
     .close-btn:hover { color: #ff4d4d; }
     
-    /* वॉलेट बटन्स */
+    /* वॉलेट बटन्स (Recharge & Withdrawal - पहले जैसे सेम) */
     .wallet-actions { display: flex; gap: 10px; margin-top: 20px; }
     .action-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; text-align: center; text-decoration: none; }
     .recharge-btn { background: #25D366; color: #fff; }
@@ -105,47 +75,43 @@
 <body>
 
   <div class="mobile-container">
-    <!-- टॉप बार: जहाँ आईडी और बैलेंस तुरंत दिखेगा -->
+
+    <!-- टॉप बार -->
     <div class="top-bar">
       <div class="player-info">
         <div class="player-id-label">Player ID</div>
         <div id="display-player-id" class="player-id-value">---</div>
       </div>
+      
       <div class="right-section">
         <div class="balance-box">₹ <span id="display-balance">0.00</span></div>
+        <button class="profile-btn" onclick="openProfile()">👤 Profile</button>
       </div>
     </div>
 
     <h2>🎮 Select Game</h2>
     
-    <!-- 4 गेम्स ग्रिड -->
+    <!-- 4 गेम्स ग्रिड (आईडी लगा दी है ताकि जावास्क्रिप्ट से लाइव लॉक चेक हो सके) -->
     <div class="games-grid">
-      <a href="wingo_game.html" class="game-card">
+      <a href="wingo_game.html" id="game-wingo" class="game-card">
         <div style="font-size: 2.2rem;">🎨</div>
         <h3>Colour Prediction</h3>
       </a>
-      <a href="mine_game.html" class="game-card">
+      
+      <a href="mine_game.html" id="game-mine" class="game-card">
         <div style="font-size: 2.2rem;">💣</div>
         <h3>Bomb Mine</h3>
       </a>
-      <a href="head_tail.html" class="game-card">
+      
+      <a href="head_tail.html" id="game-headtail" class="game-card">
         <div style="font-size: 2.2rem;">🪙</div>
         <h3>Head Tail</h3>
       </a>
-      <a href="head_tail.html" class="game-card">
+      
+      <a href="head_tail.html" id="game-slot" class="game-card">
         <div style="font-size: 2.2rem;">🎰</div>
         <h3>Casino Slot</h3>
       </a>
-    </div>
-
-    <!-- नीचे वाला नया नेविगेशन बार (Home और Profile बटन्स) -->
-    <div class="bottom-nav">
-      <a href="home.html" class="nav-item active">
-        <span>🏠</span>Home
-      </a>
-      <button class="nav-item" onclick="openProfile()">
-        <span>👤</span>Profile
-      </button>
     </div>
 
   </div>
@@ -155,6 +121,7 @@
     <div class="modal-content">
       <span class="close-btn" onclick="closeProfile()">&times;</span>
       <div class="modal-header">User Profile</div>
+      
       <div class="modal-row"><strong>Name:</strong> <span id="prof-name">---</span></div>
       <div class="modal-row"><strong>Mobile:</strong> <span id="prof-mobile">---</span></div>
       <div class="modal-row"><strong>Player ID:</strong> <span id="prof-id">---</span></div>
@@ -164,50 +131,46 @@
         <a href="recharge.html" class="action-btn recharge-btn">Recharge</a>
         <a href="withdrawal.html" class="action-btn withdraw-btn">Withdrawal</a>
       </div>
+      
       <button class="logout-btn" onclick="handleLogout()">🚪 Log Out</button>
     </div>
   </div>
   <script>
-  // आपकी index.html वाली पूरी Supabase चाबियाँ (Keys)
-  const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
+  // आपकी index.html वाली बिल्कुल असली और री-चेक की हुई क्रेडेंशियल्स
+  const supabaseUrl = 'https://supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
 
   let supabaseClient = null;
 
-  // Supabase को चालू करने का मजबूत फंक्शन (ताकि ERR_CONNECTION_TIMED_OUT होने पर भी एरर ना आए)
+  // सुप्रबेस को चालू करने का मजबूत फंक्शन जो लाइव सर्वर पर कभी फेल नहीं होगा
   function initSupabase() {
     try {
       if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
         supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-      } else {
-        console.log("Supabase Library load nahi ho payi, local backup use ho raha hai.");
       }
     } catch(e) {
-      console.log("Supabase init error:", e);
+      console.log("Supabase Client Error:", e);
     }
   }
 
-  // पेज लोड होते ही तुरंत बिना 'Loading...' दिखाए आईडी सेट करने का लॉजिक
   window.onload = async function() {
     initSupabase();
     
-    // लोकलस्टोरेज से लॉगिन मोबाइल नंबर और पुरानी आईडी तुरंत निकालें
     const loggedInUserMobile = localStorage.getItem('my77play_user');
     const localPlayerId = localStorage.getItem('my77play_id');
     const localPlayerName = localStorage.getItem('my77play_name');
     
-    // अगर यूजर लॉगिन नहीं है, तो उसे वापस लॉगिन पेज (index.html) पर भेज दो
+    // अगर यूजर लॉगिन नहीं है, तो उसे वापस लॉगिन पेज पर भेज दो
     if (!loggedInUserMobile) {
       window.location.href = 'index.html';
       return;
     }
 
-    // इंटरनेट या Supabase का इंतजार किए बिना, लोकल डेटा तुरंत स्क्रीन पर दिखा दो (ताकि Loading ना दिखे)
+    // लोकल स्टोरेज का डेटा तुरंत स्क्रीन पर दिखा दो ताकि यूजर को Loading... ना दिखे
     if (localPlayerId) {
       document.getElementById('display-player-id').innerText = localPlayerId;
       document.getElementById('prof-id').innerText = localPlayerId;
     } else {
-      // अगर लोकल स्टोरेज में आईडी नहीं है, तो मोबाइल नंबर के आखिरी 4 अंक अस्थायी रूप से दिखा दो
       document.getElementById('display-player-id').innerText = "User_" + loggedInUserMobile.substring(6);
       document.getElementById('prof-id').innerText = "User_" + loggedInUserMobile.substring(6);
     }
@@ -220,7 +183,7 @@
     
     document.getElementById('prof-mobile').innerText = loggedInUserMobile;
 
-    // अब बैकग्राउंड में Supabase से तुरंत ताजा आईडी और बैलेंस चेक करो
+    // बैकग्राउंड में Supabase से तुरंत ताजा डेटा, बैलेंस और ब्लॉक/लॉक स्टेटस चेक करना
     if (supabaseClient) {
       try {
         const { data: userData, error } = await supabaseClient
@@ -230,72 +193,80 @@
           .maybeSingle();
 
         if (userData) {
-          // डेटा मिलते ही स्क्रीन तुरंत अपडेट कर दो
-          document.getElementById('display-player-id').innerText = userData.player_id || 'N/A';
-          document.getElementById('display-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
-// --- यहाँ से पेस्ट करें (लाइव रियलटाइम यूज़र ब्लॉक और गेम लॉक सिस्टम) ---
-          
-          // 1. पेज लोड होते ही पहली बार ब्लॉक चेक करना
+          // 1. अगर एडमिन ने पूरे अकाउंट को ब्लॉक कर दिया है तो तुरंत बाहर फेंको
           if (userData.is_blocked === true) {
-            alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है!");
+            alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है! कृपया एडमिन से संपर्क करें।");
             handleLogout();
             return;
           }
 
-          // 2. ⚡ सुपाबेस रियलटाइम सिस्टम (बिना रिफ्रेश किए तुरंत ब्लॉक करने के लिए) ⚡
-          if (supabaseClient) {
-            supabaseClient
-              .channel('live_user_status')
-              .on('postgres_changes', { 
-                event: 'UPDATE', 
-                schema: 'public', 
-                table: 'users', 
-                filter: 'mobile=eq.' + loggedInUserMobile 
-              }, (payload) => {
-                const updatedData = payload.new;
-                
-                // अगर एडमिन ने लाइव बैठे-बैठे ब्लॉक कर दिया, तो तुरंत बाहर फेंको
-                if (updatedData && updatedData.is_blocked === true) {
-                  alert("आपका अकाउंट एडमिन द्वारा तुरंत ब्लॉक कर दिया गया है!");
-                  handleLogout();
-                }
-              })
-              .subscribe();
-          }
-
-          // 3. गेम्स पर क्लिक करने पर लॉक चेक करने का सिस्टम
-          document.getElementById('game-wingo').onclick = function(e) {
-            if(userData.lock_wingo === true) { e.preventDefault(); alert("यह गेम आपके लिए लॉक है!"); }
-          };
-          document.getElementById('game-mine').onclick = function(e) {
-            if(userData.lock_mine === true) { e.preventDefault(); alert("यह गेम आपके लिए लॉक है!"); }
-          };
-          document.getElementById('game-headtail').onclick = function(e) {
-            if(userData.lock_head_tail === true) { e.preventDefault(); alert("यह गेम आपके लिए लॉक है!"); }
-          };
-          document.getElementById('game-slot').onclick = function(e) {
-            if(userData.lock_slot === true) { e.preventDefault(); alert("यह गेम आपके लिए लॉक है!"); }
-          };
-          // --- यहाँ तक पेस्ट करें ---
+          // डेटा मिलते ही स्क्रीन तुरंत अपडेट करना
+          document.getElementById('display-player-id').innerText = userData.player_id || 'N/A';
+          document.getElementById('display-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
           
           document.getElementById('prof-name').innerText = userData.name || 'N/A';
           document.getElementById('prof-id').innerText = userData.player_id || 'N/A';
           document.getElementById('prof-balance').innerText = '₹' + parseFloat(userData.balance || 0).toFixed(2);
           
-          // लोकलस्टोरेज को नए डेटा से अपडेट कर दो ताकि अगली बार बिना इंटरनेट भी तुरंत दिखे
           localStorage.setItem('my77play_id', userData.player_id || '');
           localStorage.setItem('my77play_name', userData.name || '');
+
+          // 2. ⚡ सुपाबेस लाइव रियलटाइम सिस्टम (बिना रिफ्रेश किए तुरंत ब्लॉक करने के लिए) ⚡
+          supabaseClient
+            .channel('live_user_status')
+            .on('postgres_changes', { 
+              event: 'UPDATE', 
+              schema: 'public', 
+              table: 'users', 
+              filter: 'mobile=eq.' + loggedInUserMobile 
+            }, (payload) => {
+              const updatedData = payload.new;
+              if (updatedData && updatedData.is_blocked === true) {
+                alert("आपका अकाउंट एडमिन द्वारा तुरंत ब्लॉक कर दिया गया है!");
+                handleLogout();
+              }
+            })
+            .subscribe();
+
+          // 3. गेम्स क्लिक करने पर लाइव लॉक चेक करने का पक्का सिस्टम
+          document.getElementById('game-wingo').onclick = function(e) {
+            if(userData.lock_wingo === true) { 
+              e.preventDefault(); 
+              alert("यह गेम आपके लिए एडमिन द्वारा अस्थाई रूप से लॉक किया गया है!"); 
+            }
+          };
+
+          document.getElementById('game-mine').onclick = function(e) {
+            if(userData.lock_mine === true) { 
+              e.preventDefault(); 
+              alert("यह गेम आपके लिए एडमिन द्वारा अस्थाई रूप से लॉक किया गया है!"); 
+            }
+          };
+
+          document.getElementById('game-headtail').onclick = function(e) {
+            if(userData.lock_head_tail === true) { 
+              e.preventDefault(); 
+              alert("यह गेम आपके लिए एडमिन द्वारा अस्थाई रूप से लॉक किया गया है!"); 
+            }
+          };
+
+          document.getElementById('game-slot').onclick = function(e) {
+            if(userData.lock_slot === true) { 
+              e.preventDefault(); 
+              alert("यह गेम आपके लिए एडमिन द्वारा अस्थाई रूप से लॉक किया गया है!"); 
+            }
+          };
+
         } else {
-          // अगर डेटाबेस में यूजर नहीं मिला तो लॉगआउट कर दो
           handleLogout();
         }
       } catch (err) {
-        console.log("Supabase se data lene me dikkat aayi:", err);
+        console.log("Error Syncing data from Supabase:", err);
       }
     }
   };
 
-  // प्रोफाइल पॉप-अप खोलने के लिए (अब 'openProfile is not defined' की एरर कभी नहीं आएगी)
+  // प्रोफाइल पॉप-अप खोलने के लिए
   function openProfile() {
     document.getElementById('profile-modal').style.display = 'flex';
   }
@@ -313,7 +284,7 @@
     }
   }
 
-  // लॉग आउट (Log Out) करने का पूरा लॉजिक
+  // लॉग आउट करने का पूरा लॉजिक
   function handleLogout() {
     localStorage.removeItem('my77play_user');
     localStorage.removeItem('my77play_id');
