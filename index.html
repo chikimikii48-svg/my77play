@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https://*.supabase.co;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Login</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com"></script>
   <style>
     body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
     .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
@@ -51,39 +51,20 @@
 </div>
 
 <script>
-  // 1. यहाँ सही प्रोजेक्ट URL वापस फिक्स कर दिया गया है
   const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
 
   let supabaseClient = null;
 
   function initSupabase() {
-    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+    if (!supabaseClient && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
       supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     }
   }
-
-  window.onload = function() {
+  
+  window.addEventListener('DOMContentLoaded', () => {
     initSupabase();
-    fetchWhatsAppNumber(); 
-  };
-
-  async function fetchWhatsAppNumber() {
-    try {
-      if(!supabaseClient) initSupabase();
-      const { data, error } = await supabaseClient
-        .from('admin_settings')
-        .select('whatsapp_number')
-        .maybeSingle();
-      
-      if (data && data.whatsapp_number) {
-        // यहाँ / स्लैश को ठीक किया गया है
-        document.getElementById('whatsapp-link').href = "https://wa.me" + data.whatsapp_number;
-      }
-    } catch (e) {
-      console.log("WhatsApp load error, default running.");
-    }
-  }
+  });
 
   let isLoginMode = true;
 
@@ -128,15 +109,16 @@
   }
 
   function random9Digit() {
-    return String(Math.floor(100000000 + Math.random() * 900000000));
+    const n = Math.floor(100000000 + Math.random() * 900000000); 
+    return String(n);
   }
 
   async function handleAuth(e) {
     e.preventDefault();
     errorBox.style.display = 'none';
     successBox.style.display = 'none';
-    
-    if (!supabaseClient) initSupabase();
+    initSupabase();
+
     if (!supabaseClient) {
       showError("Connection down. Please refresh the page.");
       return;
@@ -160,35 +142,33 @@
         const { data, error } = await supabaseClient
           .from('users')
           .select('*')
-          .eq('mobile', mobile);
+          .eq('mobile', mobile)
+          .maybeSingle();
 
         if (error) {
-          showError("Server error code 01. Please try again.");
+          showError("Server error. Please try again.");
           submitBtn.innerText = "Login";
           submitBtn.disabled = false;
           return;
         }
-        
-        if (!data || data.length === 0) {
+        if (!data) {
           showError("आप मौजूद यूजर नहीं हो, कृपया पहले रजिस्टर करो।");
           submitBtn.innerText = "Login";
           submitBtn.disabled = false;
           return;
         }
-
-        const userRow = data[0]; 
-
-        if (String(userRow.password) !== String(password)) {
+        if (String(data.password) !== String(password)) {
           showError("Incorrect Password! Please try again.");
           submitBtn.innerText = "Login";
           submitBtn.disabled = false;
           return;
         }
 
-        localStorage.setItem('my77play_user', userRow.mobile);
-        localStorage.setItem('my77play_id', userRow.player_id || '');
-        localStorage.setItem('my77play_name', userRow.name || '');
-        localStorage.setItem('my77play_balance', String(userRow.balance ?? 0));
+        // लॉगिन होते ही रैंडम प्लेयर आईडी को लोकल मैमोरी में पक्का सेव करेगा
+        localStorage.setItem('my77play_user', data.mobile);
+        localStorage.setItem('my77play_id', String(data.player_id));
+        localStorage.setItem('my77play_name', data.name || '');
+        localStorage.setItem('my77play_balance', String(data.balance ?? 0));
 
         showSuccess("Successful Login!");
         setTimeout(() => {
@@ -196,7 +176,6 @@
         }, 600);
 
       } else {
-        // 2. गायब हुआ 'Register' लॉजिक यहाँ पूरा वापस जोड़ दिया गया है
         submitBtn.innerText = "Registering...";
 
         if (name.length < 2) {
@@ -209,9 +188,10 @@
         const { data: existing } = await supabaseClient
           .from('users')
           .select('mobile')
-          .eq('mobile', mobile);
+          .eq('mobile', mobile)
+          .maybeSingle();
 
-        if (existing && existing.length > 0) {
+        if (existing) {
           showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
           submitBtn.innerText = "Register";
           submitBtn.disabled = false;
@@ -230,10 +210,13 @@
           return;
         }
 
+        // रजिस्ट्रेशन होते ही रैंडम आईडी को तुरंत लोकल मैमोरी में डाल देगा ताकि डेटाबेस लोड होने से पहले भी खाली न दिखे
+        localStorage.setItem('my77play_id', String(newPlayerId));
+
         showSuccess("Registration Successful! Please login.");
         setTimeout(() => {
           toggleMode();
-          submitBtn.disabled = false; // बटन तुरंत एक्टिव होगा
+          submitBtn.disabled = false;
         }, 1200);
       }
     } catch (err) {
