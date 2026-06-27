@@ -97,7 +97,7 @@
         let localBal = localStorage.getItem('my77play_balance') || "0";
         document.getElementById('main-balance').innerText = "₹" + parseFloat(localBal).toFixed(2);
 
-        const supabaseUrl = 'https://supabase.co';
+        const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
         
         let supabaseClient = null;
