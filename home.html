@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https://*.supabase.co;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Premium Dashboard</title>
-    <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src="https://unpkg.com"></script>
+    
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0b0b13; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding-bottom: 90px; display: flex; flex-direction: column; align-items: center; }
@@ -47,7 +49,8 @@
     <div class="main-container">
         <div class="user-header">
             <div class="user-info">
-                <div class="user-id" id="user-permanent-id">ID: --------</div>
+                <!-- ID यहाँ लोड होगी -->
+                <div class="user-id" id="user-permanent-id">ID: Loading...</div>
             </div>
             <div class="wallet-box">
                 <div class="bal-title">Wallet Balance</div>
@@ -82,14 +85,18 @@
     </div>
 
     <script>
-        // ऑथेंटिकेशन और लोकल ID लोड (पेज लोड होने से पहले ही रन होगा ताकि ID तुरंत दिखे)
         const activeUser = localStorage.getItem('my77play_user');
         if (!activeUser) { window.location.href = 'index.html'; }
         
+        // शुरुआत में बैकअप लोड करना
         let savedId = localStorage.getItem('my77play_id');
-        if (savedId) { document.getElementById('user-permanent-id').innerText = "ID: " + savedId; }
+        if (savedId && savedId !== 'undefined' && savedId !== '-') { 
+            document.getElementById('user-permanent-id').innerText = "ID: " + savedId; 
+        }
+        
+        let localBal = localStorage.getItem('my77play_balance') || "0";
+        document.getElementById('main-balance').innerText = "₹" + parseFloat(localBal).toFixed(2);
 
-        // क्रेडेंशियल्स (यहाँ आपका पूरा यूआरएल सेट है)
         const supabaseUrl = 'https://supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
         
@@ -102,15 +109,14 @@
             }
         }
 
-        // DOMContentLoaded का इस्तेमाल किया ताकि बटन और सुपाबेस तुरंत एक्टिव हो जाएं
-        window.addEventListener('DOMContentLoaded', () => {
+        window.onload = function() {
             initSupabase();
             loadSettings();
-        });
+        };
 
         async function loadSettings() {
             try {
-                initSupabase();
+                if (!supabaseClient) initSupabase();
                 if (!supabaseClient) return;
 
                 // 1. लाइव व्हाट्सएप सपोर्ट लोड करना
@@ -119,15 +125,12 @@
                     liveWhatsappLink = "https://wa.me" + adminData.whatsapp_number; 
                 }
 
-                // 2. लाइव बैलेंस लोड करना
-                const { data: userData } = await supabaseClient.from('users').select('balance').eq('mobile', activeUser).maybeSingle();
+                // 2. लाइव बैलेंस और प्लेयर आईडी सीधे डेटाबेस से सिंक करना
+                const { data: userData } = await supabaseClient.from('users').select('balance, player_id').eq('mobile', activeUser).maybeSingle();
                 if (userData) {
+                    // बैलेंस दिखाना
                     document.getElementById('main-balance').innerText = "₹" + parseFloat(userData.balance ?? 0).toFixed(2);
                     localStorage.setItem('my77play_balance', String(userData.balance ?? 0));
-                }
-            } catch (e) {
-                console.log("Error loading, falling back to local storage data.");
-                let localBal = localStorage.getItem('my77play_balance') || "0";
-                document.getElementById('main-balance').innerText = "₹" + parseFloat(localBal).toFixed(2);
-            }
-        }
+                    
+                    // अगर लोकल में आईडी गायब थी, तो सीधे सुपाबेस वाली आईडी स्क्रीन पर डालना
+                    const finalId = userData.player_id || activeUser;
