@@ -54,8 +54,18 @@
   const supabaseUrl = 'https://supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
 
-  // सीधे क्लाइंट बनाया ताकि कनेक्शन बिना देरी के तुरंत चालू हो जाए
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+  let supabaseClient = null;
+
+  function initSupabase() {
+    if (!supabaseClient && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+      supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    }
+  }
+
+  // जैसे ही पेज लोड हो, सुपाबेस चालू कर दें
+  window.addEventListener('DOMContentLoaded', () => {
+    initSupabase();
+  });
 
   let isLoginMode = true;
 
@@ -64,8 +74,6 @@
   const toggleAuth = document.getElementById('toggle-auth');
   const errorBox = document.getElementById('error-box');
   const successBox = document.getElementById('success-box');
-  const whatsappLink = document.getElementById('whatsapp-link');
-
   const nameInput = document.getElementById('name');
   const authForm = document.getElementById('auth-form');
   authForm.addEventListener('submit', handleAuth);
@@ -110,6 +118,9 @@
     e.preventDefault();
     errorBox.style.display = 'none';
     successBox.style.display = 'none';
+    
+    // सबमिट दबाते ही पक्का करें कि क्लाइंट रेडी हो
+    initSupabase();
 
     if (!supabaseClient) {
       showError("Connection down. Please refresh the page.");
@@ -204,7 +215,7 @@
         showSuccess("Registration Successful! Please login.");
         setTimeout(() => {
           toggleMode();
-          submitBtn.disabled = false;
+          submitBtn.disabled = false; // बटन को वापस एक्टिव कर दिया
         }, 1200);
       }
     } catch (err) {
