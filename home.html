@@ -233,6 +233,29 @@
           // डेटा मिलते ही स्क्रीन तुरंत अपडेट कर दो
           document.getElementById('display-player-id').innerText = userData.player_id || 'N/A';
           document.getElementById('display-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
+          // --- यहाँ से पेस्ट करें (यूज़र और गेम लॉक सिस्टम) ---
+  if (userData.is_blocked === true) {
+    alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है!");
+    handleLogout();
+    return;
+  }
+  if (userData.lock_wingo === true) {
+    const wL = document.querySelector('a[href="wingo_game.html"]');
+    if(wL) wL.onclick = function(e) { e.preventDefault(); alert("यह गेम आपके लिए लॉक है!"); };
+  }
+  if (userData.lock_mine === true) {
+    const mL = document.querySelector('a[href="mine_game.html"]');
+    if(mL) mL.onclick = function(e) { e.preventDefault(); alert("यह गेम आपके लिए लॉक है!"); };
+  }
+  if (userData.lock_head_tail === true) {
+    const hL = document.querySelector('a[href="head_tail.html"]');
+    if(hL) hL.onclick = function(e) { if(this.innerHTML.includes("Head Tail")) { e.preventDefault(); alert("यह गेम आपके लिए लॉक है!"); } };
+  }
+  if (userData.lock_slot === true) {
+    const sL = document.querySelectorAll('a[href="head_tail.html"]');
+    if(sL && sL[1]) sL[1].onclick = function(e) { e.preventDefault(); alert("यह गेम आपके लिए लॉक है!"); };
+  }
+  // --- यहाँ तक पेस्ट करें ---
           
           document.getElementById('prof-name').innerText = userData.name || 'N/A';
           document.getElementById('prof-id').innerText = userData.player_id || 'N/A';
