@@ -2,101 +2,189 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://supabase.co; img-src 'self' data: blob: https://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my77play - Deposit / Recharge</title>
+    <!-- Supabase Library CDN -->
     <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0b0b13; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .recharge-container { width: 100%; max-width: 420px; background: #161626; padding: 25px; border-radius: 20px; border: 1px solid rgba(0, 255, 204, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+        body { 
+            background: #0b0b13; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            color: #fff; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh;
+        }
+        /* मोबाइल जैसा लेआउट */
+        .mobile-container { 
+            width: 100%; 
+            max-width: 390px; 
+            min-height: 100vh; 
+            background: #161626; 
+            padding: 25px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); 
+            box-sizing: border-box;
+            padding-bottom: 40px;
+        }
         .header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
-        .back-btn { background: none; border: none; color: #00ffcc; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
+        .back-btn { background: none; border: none; color: #00ffcc; font-size: 1.5rem; cursor: pointer; font-weight: bold; padding: 5px; }
         .header h1 { font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px; color: #fff; }
+        
         .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .form-group label { font-size: 0.9rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
-        .form-group input { background: #1f1f3a; border: 1px solid #333; padding: 14px; border-radius: 12px; color: #fff; font-size: 1.1rem; outline: none; transition: 0.3s; width: 100%; }
+        .form-group input, .form-group select { background: #1f1f3a; border: 1px solid #333; padding: 14px; border-radius: 12px; color: #fff; font-size: 1.1rem; outline: none; transition: 0.3s; width: 100%; }
+        .form-group input:focus, .form-group select:focus { border-color: #00ffcc; }
+        
         .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        .amt-btn { background: #1f1f3a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .amt-btn:hover, .amt-btn.active { background: #00ffcc; color: #0b0b13; border-color: #00ffcc; }
+        .amt-btn { background: #1f1f3a; border: 1px solid #333; color: #fff; padding: 10px 5px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .amt-btn:hover, .amt-btn.active { background: #00ffcc; color: #0b0b13; border-color: #00ffcc; box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); }
+        
+        /* UPI सिलेक्शन बॉक्स */
         .upi-box { background: rgba(0, 0, 0, 0.2); border: 1px dashed rgba(0, 255, 204, 0.3); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px; }
-        .upi-title { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 5px; }
-        .upi-id { font-size: 1.1rem; color: #00ffcc; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 10px; word-break: break-all; }
-        .copy-btn { background: #00ffcc; color: #0b0b13; border: none; padding: 6px 15px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; text-transform: uppercase; }
+        .upi-title { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; }
+        .copy-btn { background: #00ffcc; color: #0b0b13; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; text-transform: uppercase; margin-top: 5px; width: 100%; }
+        
         .submit-btn { background: #00ffcc; color: #0b0b13; border: none; padding: 15px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; width: 100%; margin-top: 10px; }
+        .submit-btn:hover { background: #00ccaa; box-shadow: 0 0 15px rgba(0,255,204,0.4); }
+        .submit-btn:disabled { background: #555; color: #aaa; cursor: not-allowed; }
+        
         .msg-box { padding: 12px; border-radius: 8px; font-size: 0.95rem; display: none; margin-bottom: 15px; text-align: left; }
         .msg-error { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.2); }
         .msg-success { color: #25D366; background: rgba(37, 211, 102, 0.1); border: 1px solid rgba(37, 211, 102, 0.2); }
+
+        /* यूजर की लाइव रिचार्ज हिस्ट्री टेबल का स्टाइल */
+        .history-section { margin-top: 30px; border-top: 1px solid #2c2c3e; padding-top: 20px; }
+        .history-title { font-size: 1.1rem; color: #00ffcc; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .history-card { background: #1f1f3a; border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid #333; font-size: 0.9rem; }
+        .history-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .status-Pending { color: #ffaa00; font-weight: bold; }
+        .status-Approved { color: #25D366; font-weight: bold; }
+        .status-Rejected { color: #ff4d4d; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="recharge-container">
-        <div class="header"><button class="back-btn" onclick="goBack()">←</button><h1>Deposit / Recharge</h1></div>
+    <div class="mobile-container">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h1>Deposit / Recharge</h1>
+        </div>
+        
         <div id="status-msg" class="msg-box"></div>
+        
         <div class="form-group">
             <label>Enter Deposit Amount (₹)</label>
             <input type="number" id="recharge-amount" placeholder="Minimum ₹100" min="100" value="100">
         </div>
+        
         <div class="amount-grid">
             <button class="amt-btn active" onclick="setAmount(100, this)">100</button>
             <button class="amt-btn" onclick="setAmount(300, this)">300</button>
             <button class="amt-btn" onclick="setAmount(500, this)">500</button>
             <button class="amt-btn" onclick="setAmount(1000, this)">1000</button>
         </div>
-        <div class="upi-box">
-            <div class="upi-title">Pay on this Admin UPI ID</div>
-            <!-- ⚡ अब यह आईडी सीधे सुप्रबेस पैनल से लोड होगी ⚡ -->
-            <div class="upi-id" id="admin-upi">Loading UPI ID...</div>
-            <button class="copy-btn" onclick="copyUPI()">Copy UPI ID</button>
+        
+        <!-- मनचाही UPI सेलेक्ट करने का लाइव ड्रॉपडाउन -->
+        <div class="form-group">
+            <label>Select Payment UPI Method</label>
+            <select id="upi-select">
+                <option value="">Loading UPI Methods...</option>
+            </select>
         </div>
+
+        <div class="upi-box">
+            <div class="upi-title">Click below to copy selected UPI ID</div>
+            <button class="copy-btn" onclick="copyUPI()">📋 Copy Selected UPI</button>
+        </div>
+        
         <div class="form-group">
             <label>Enter 12-Digit UTR / Transaction ID</label>
             <input type="text" id="utr-number" placeholder="Enter UTR after payment" maxlength="12">
         </div>
+        
         <button class="submit-btn" id="sub-btn" onclick="submitRecharge()">Submit Request</button>
+        
+        <!-- यूजर की लाइव रिचार्ज हिस्ट्री (Approve/Reject लाइव दिखेगा) -->
+        <div class="history-section">
+            <div class="history-title">📜 Your Recharge History</div>
+            <div id="history-container">Loading your history...</div>
+        </div>
     </div>
-    <script>
-        const activeUser = localStorage.getItem('my77play_user');
-        if (!activeUser) { window.location.href = 'index.html'; }
-        const supabaseUrl = 'https://supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1w2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-        const statusMsg = document.getElementById('status-msg'); const subBtn = document.getElementById('sub-btn');
 
-        // ⚡ सुप्रबेस से लाइव UPI ID खींचना ⚡
-        async function loadAdminUPI() {
-            try {
-                const { data } = await supabaseClient.from('admin_upi').select('upi_id').eq('id', 1).maybeSingle();
-                if (data) { document.getElementById('admin-upi').innerText = data.upi_id; }
-            } catch (e) { document.getElementById('admin-upi').innerText = "admin77play@ybl"; }
+<script>
+    const activeUser = localStorage.getItem('my77play_user');
+    if (!activeUser) { window.location.href = 'index.html'; }
+
+    const supabaseUrl = 'https://supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
+    
+    let supabaseClient = null;
+
+    function initSupabase() {
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         }
-        loadAdminUPI();
+    }
 
-        function showMsg(text, isSuccess) { statusMsg.innerText = text; statusMsg.style.display = 'block'; statusMsg.className = "msg-box " + (isSuccess ? "msg-success" : "msg-error"); }
-        function setAmount(val, btn) { document.getElementById('recharge-amount').value = val; document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
-        function copyUPI() { const upiText = document.getElementById('admin-upi').innerText; navigator.clipboard.writeText(upiText); alert("UPI ID Copied!"); }
-        function goBack() { window.location.href = 'home.html'; }
+    window.onload = function() {
+        initSupabase();
+        loadAdminUPIs();
+        loadUserHistory();
+    };
 
-        async function submitRecharge() {
-            statusMsg.style.display = 'none';
-            const amount = parseFloat(document.getElementById('recharge-amount').value);
-            const utr = document.getElementById('utr-number').value.trim();
-            if (isNaN(amount) || amount < 100) { showMsg("Minimum recharge amount is ₹100!", false); return; }
-            if (utr.length !== 12 || isNaN(utr)) { showMsg("Please enter valid 12-digit UTR!", false); return; }
-            subBtn.disabled = true; subBtn.innerText = "Submitting...";
-            try {
-                const { error } = await supabaseClient.from('recharges').insert([{ mobile: activeUser, amount: amount, utr: utr, status: 'Pending' }]);
-                if (error) {
-                    if (error.code === '23505') showMsg("This UTR has already been submitted!", false);
-                    else showMsg("Submission failed: " + error.message, false);
-                    subBtn.disabled = false; subBtn.innerText = "Submit Request";
-                } else {
-                    showMsg("Recharge Request Submitted Successfully!", true);
-                    document.getElementById('utr-number').value = "";
-                    setTimeout(() => { window.location.href = 'home.html'; }, 2000);
-                }
-            } catch(err) { subBtn.disabled = false; subBtn.innerText = "Submit Request"; }
+    // 1. सुप्रबेस से सभी लाइव UPI IDs लोड करना
+    async function loadAdminUPIs() {
+        try {
+            if(!supabaseClient) initSupabase();
+            const { data, error } = await supabaseClient.from('admin_upi').select('upi_id');
+            const selectDropdown = document.getElementById('upi-select');
+            
+            if (data && data.length > 0) {
+                selectDropdown.innerHTML = '';
+                data.forEach(item => {
+                    let option = document.createElement('option');
+                    option.value = item.upi_id;
+                    option.innerText = item.upi_id;
+                    selectDropdown.appendChild(option);
+                });
+            } else {
+                selectDropdown.innerHTML = '<option value="admin77play@ybl">admin77play@ybl (Default)</option>';
+            }
+        } catch (e) { 
+            document.getElementById('upi-select').innerHTML = '<option value="admin77play@ybl">admin77play@ybl</option>'; 
         }
-    </script>
-</body>
-</html>
+    }
+
+    // 2. यूजर की लाइव रिचार्ज हिस्ट्री दिखाना (Pending / Approved / Rejected)
+    async function loadUserHistory() {
+        try {
+            if(!supabaseClient) initSupabase();
+            const { data, error } = await supabaseClient
+                .from('recharges')
+                .select('*')
+                .eq('mobile', activeUser)
+                .order('id', { ascending: false });
+
+            const historyContainer = document.getElementById('history-container');
+            if (data && data.length > 0) {
+                historyContainer.innerHTML = '';
+                data.forEach(row => {
+                    const card = `
+                        <div class="history-card">
+                            <div class="history-row"><strong>Amount:</strong> <span>₹${row.amount}</span></div>
+                            <div class="history-row"><strong>UTR:</strong> <span>${row.utr}</span></div>
+                            <div class="history-row"><strong>Status:</strong> <span class="status-${row.status}">${row.status}</span></div>
+                        </div>`;
+                    historyContainer.innerHTML += card;
+                });
+            } else {
+                historyContainer.innerHTML = '<div style="color:#aaa;font-size:0.9rem;">No recharge requests found.</div>';
+            }
+        } catch (e) {
+            document.getElementById('history-container').innerText = "Failed to load history.";
+        }
+    }
+
+    function showMsg(text, isSuccess) {
