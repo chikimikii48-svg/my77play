@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Dashboard</title>
-  <!-- Supabase Library -->
+  <!-- Supabase Library CDN -->
   <script src="https://jsdelivr.net"></script>
   <style>
-    /* पीसी पर पेज को बीच में और मोबाइल जैसा रखने के लिए */
+    /* मोबाइल जैसा लेआउट रखने के लिए मुख्य स्टाइल */
     body { 
       background: #0f0f1a; 
       font-family: 'Segoe UI', Arial, sans-serif; 
@@ -19,15 +19,16 @@
       min-height: 100vh;
     }
     
-    /* मुख्य मोबाइल कंटेनर (सिर्फ फोन साइज की स्क्रीन) */
+    /* मुख्य मोबाइल कंटेनर */
     .mobile-container {
       width: 100%;
-      max-width: 390px; /* एकदम परफेक्ट मोबाइल चौड़ाई */
+      max-width: 390px; 
       min-height: 100vh;
       background: #131322;
       box-shadow: 0 0 30px rgba(0,0,0,0.8);
-      padding: 20px;
+      padding: 20px 20px 80px 20px; /* नीचे बटन के लिए स्पेस छोड़ा है */
       box-sizing: border-box;
+      position: relative;
     }
     
     /* टॉप बार जहाँ प्लेयर ID और बैलेंस दिखेगा */
@@ -36,12 +37,9 @@
     .player-id-label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
     .player-id-value { font-size: 1.1rem; color: #00ffcc; font-weight: bold; text-shadow: 0 0 8px rgba(0, 255, 204, 0.4); }
     
-    /* बैलेंस और प्रोफाइल बटन */
-    .right-section { display: flex; align-items: center; gap: 10px; }
+    .right-section { display: flex; align-items: center; }
     .balance-box { background: #2c2c3e; padding: 6px 12px; border-radius: 8px; font-weight: bold; border: 1px solid #444; font-size: 0.95rem; }
     .balance-box span { color: #25D366; }
-    .profile-btn { background: #00ffcc; color: #0f0f1a; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-size: 0.85rem; }
-    .profile-btn:hover { background: #00ccaa; box-shadow: 0 0 10px rgba(0,255,204,0.4); }
     
     h2 { font-size: 1.3rem; margin-top: 10px; color: #00ffcc; text-shadow: 0 0 5px rgba(0, 255, 204, 0.2); }
 
@@ -50,6 +48,38 @@
     .game-card { background: #1c1c27; border: 1px solid #2c2c3e; padding: 15px 10px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff; }
     .game-card:hover { border-color: #00ffcc; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 255, 204, 0.2); }
     .game-card h3 { margin: 8px 0 0 0; font-size: 0.95rem; }
+
+    /* नीचे चिपका रहने वाला बटन बार (Bottom Navigation) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 390px;
+      background: #1c1c27;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      border-top: 1px solid #00ffcc;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #aaa;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+    .nav-item.active, .nav-item:hover { color: #00ffcc; }
+    .nav-item span { font-size: 1.5rem; margin-bottom: 2px; }
 
     /* प्रोफाइल पॉप-अप बॉक्स (Modal) */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
@@ -60,7 +90,7 @@
     .close-btn { position: absolute; top: 12px; right: 15px; color: #aaa; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
     .close-btn:hover { color: #ff4d4d; }
     
-    /* वॉलेट बटन्स (Recharge & Withdrawal) */
+    /* वॉलेट बटन्स */
     .wallet-actions { display: flex; gap: 10px; margin-top: 20px; }
     .action-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; text-align: center; text-decoration: none; }
     .recharge-btn { background: #25D366; color: #fff; }
@@ -74,88 +104,90 @@
 </head>
 <body>
 
-  <!-- मोबाइल जैसा लेआउट रखने के लिए कंटेनर -->
   <div class="mobile-container">
-
     <!-- टॉप बार: जहाँ आईडी और बैलेंस तुरंत दिखेगा -->
     <div class="top-bar">
       <div class="player-info">
         <div class="player-id-label">Player ID</div>
-        <!-- लोडिंग हटा दिया, यहाँ सीधे लोकल डेटा या ताजा आईडी तुरंत दिखेगी -->
         <div id="display-player-id" class="player-id-value">---</div>
       </div>
-      
       <div class="right-section">
         <div class="balance-box">₹ <span id="display-balance">0.00</span></div>
-        <button class="profile-btn" onclick="openProfile()">👤 Profile</button>
       </div>
     </div>
 
     <h2>🎮 Select Game</h2>
     
-    <!-- 4 गेम्स ग्रिड लेआउट में -->
+    <!-- 4 गेम्स ग्रिड -->
     <div class="games-grid">
-      <!-- 1. Colour Prediction -> wingo_game.html -->
       <a href="wingo_game.html" class="game-card">
         <div style="font-size: 2.2rem;">🎨</div>
         <h3>Colour Prediction</h3>
       </a>
-      
-      <!-- 2. Bomb Mine -> mine_game.html -->
       <a href="mine_game.html" class="game-card">
         <div style="font-size: 2.2rem;">💣</div>
         <h3>Bomb Mine</h3>
       </a>
-      
-      <!-- 3. Head Tail -> head_tail.html -->
       <a href="head_tail.html" class="game-card">
         <div style="font-size: 2.2rem;">🪙</div>
         <h3>Head Tail</h3>
       </a>
-      
-      <!-- 4. Casino Slot -> head_tail.html -->
       <a href="head_tail.html" class="game-card">
         <div style="font-size: 2.2rem;">🎰</div>
         <h3>Casino Slot</h3>
       </a>
     </div>
 
-  </div> <!-- मोबाइल कंटेनर एंड -->
+    <!-- नीचे वाला नया नेविगेशन बार (Home और Profile बटन्स) -->
+    <div class="bottom-nav">
+      <a href="home.html" class="nav-item active">
+        <span>🏠</span>Home
+      </a>
+      <button class="nav-item" onclick="openProfile()">
+        <span>👤</span>Profile
+      </button>
+    </div>
 
-  <!-- प्रोफाइल पॉप-अप (Modal) -->
+  </div>
+
+  <!-- प्रोफाइल पॉप-अप Box -->
   <div id="profile-modal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeProfile()">&times;</span>
       <div class="modal-header">User Profile</div>
-      
       <div class="modal-row"><strong>Name:</strong> <span id="prof-name">---</span></div>
       <div class="modal-row"><strong>Mobile:</strong> <span id="prof-mobile">---</span></div>
       <div class="modal-row"><strong>Player ID:</strong> <span id="prof-id">---</span></div>
       <div class="modal-row"><strong>Wallet Balance:</strong> <span id="prof-balance" style="color: #25D366; font-weight: bold;">₹0.00</span></div>
       
-      <!-- प्रोफाइल के अंदर रिचार्ज और विड्रॉल बटन्स -->
       <div class="wallet-actions">
         <a href="recharge.html" class="action-btn recharge-btn">Recharge</a>
         <a href="withdrawal.html" class="action-btn withdraw-btn">Withdrawal</a>
       </div>
-      
       <button class="logout-btn" onclick="handleLogout()">🚪 Log Out</button>
     </div>
   </div>
-
-<script>
+  <script>
+  // आपकी index.html वाली पूरी Supabase चाबियाँ (Keys)
   const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
 
   let supabaseClient = null;
 
+  // Supabase को चालू करने का मजबूत फंक्शन (ताकि ERR_CONNECTION_TIMED_OUT होने पर भी एरर ना आए)
   function initSupabase() {
-    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-      supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    try {
+      if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+      } else {
+        console.log("Supabase Library load nahi ho payi, local backup use ho raha hai.");
+      }
+    } catch(e) {
+      console.log("Supabase init error:", e);
     }
   }
 
-  // पेज लोड होते ही तुरंत बिना लोडिंग दिखाए आईडी सेट करने का लॉजिक
+  // पेज लोड होते ही तुरंत बिना 'Loading...' दिखाए आईडी सेट करने का लॉजिक
   window.onload = async function() {
     initSupabase();
     
@@ -164,19 +196,28 @@
     const localPlayerId = localStorage.getItem('my77play_id');
     const localPlayerName = localStorage.getItem('my77play_name');
     
+    // अगर यूजर लॉगिन नहीं है, तो उसे वापस लॉगिन पेज (index.html) पर भेज दो
     if (!loggedInUserMobile) {
       window.location.href = 'index.html';
       return;
     }
 
-    // Supabase का इंतजार किए बिना, लोकल डेटा तुरंत स्क्रीन पर दिखा दो (ताकि Loading... ना दिखे)
+    // इंटरनेट या Supabase का इंतजार किए बिना, लोकल डेटा तुरंत स्क्रीन पर दिखा दो (ताकि Loading ना दिखे)
     if (localPlayerId) {
       document.getElementById('display-player-id').innerText = localPlayerId;
       document.getElementById('prof-id').innerText = localPlayerId;
+    } else {
+      // अगर लोकल स्टोरेज में आईडी नहीं है, तो मोबाइल नंबर के आखिरी 4 अंक अस्थायी रूप से दिखा दो
+      document.getElementById('display-player-id').innerText = "User_" + loggedInUserMobile.substring(6);
+      document.getElementById('prof-id').innerText = "User_" + loggedInUserMobile.substring(6);
     }
+    
     if (localPlayerName) {
       document.getElementById('prof-name').innerText = localPlayerName;
+    } else {
+      document.getElementById('prof-name').innerText = "Player";
     }
+    
     document.getElementById('prof-mobile').innerText = loggedInUserMobile;
 
     // अब बैकग्राउंड में Supabase से तुरंत ताजा आईडी और बैलेंस चेक करो
@@ -197,14 +238,44 @@
           document.getElementById('prof-id').innerText = userData.player_id || 'N/A';
           document.getElementById('prof-balance').innerText = '₹' + parseFloat(userData.balance || 0).toFixed(2);
           
-          // लोकलस्टोरेज को नए डेटा से अपडेट कर दो
+          // लोकलस्टोरेज को नए डेटा से अपडेट कर दो ताकि अगली बार बिना इंटरनेट भी तुरंत दिखे
           localStorage.setItem('my77play_id', userData.player_id || '');
           localStorage.setItem('my77play_name', userData.name || '');
         } else {
+          // अगर डेटाबेस में यूजर नहीं मिला तो लॉगआउट कर दो
           handleLogout();
         }
       } catch (err) {
-        console.log("Error fetching user data from Supabase:", err);
+        console.log("Supabase se data lene me dikkat aayi:", err);
       }
     }
   };
+
+  // प्रोफाइल पॉप-अप खोलने के लिए (अब 'openProfile is not defined' की एरर कभी नहीं आएगी)
+  function openProfile() {
+    document.getElementById('profile-modal').style.display = 'flex';
+  }
+
+  // प्रोफाइल पॉप-अप बंद करने के लिए
+  function closeProfile() {
+    document.getElementById('profile-modal').style.display = 'none';
+  }
+
+  // पॉप-अप बॉक्स के बाहर कहीं भी क्लिक करने पर उसे बंद करने के लिए
+  window.onclick = function(event) {
+    const modal = document.getElementById('profile-modal');
+    if (event.target == modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  // लॉग आउट (Log Out) करने का पूरा लॉजिक
+  function handleLogout() {
+    localStorage.removeItem('my77play_user');
+    localStorage.removeItem('my77play_id');
+    localStorage.removeItem('my77play_name');
+    window.location.href = 'index.html';
+  }
+</script>
+</body>
+</html>
