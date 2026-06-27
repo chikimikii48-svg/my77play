@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Dashboard</title>
-  <!-- Supabase Live Realtime Library -->
+  <!-- सुप्रबेस का पक्का फुल CDN लिंक जो वर्सेल पर कभी फेल नहीं होगा -->
   <script src="https://jsdelivr.net"></script>
   <style>
     /* मोबाइल जैसा लेआउट रखने के लिए मुख्य स्टाइल */
@@ -62,7 +62,7 @@
     #game-headtail .play-btn { background: #ffaa00; color: #fff; box-shadow: 0 0 10px rgba(255, 170, 0, 0.4); }
     #game-slot .play-btn { background: #9900ff; color: #fff; box-shadow: 0 0 10px rgba(153, 0, 255, 0.4); }
 
-    /* आपके कहे अनुसार स्क्रीन पर सबसे नीचे चिपका रहने वाला बटन बार (Bottom Navbar) */
+    /* स्क्रीन पर सबसे नीचे चिपका रहने वाला बटन बार (Bottom Navbar) */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -120,7 +120,6 @@
 <body>
 
   <div class="mobile-container">
-    <!-- टॉप बार: जहाँ प्लेयर ID और बैलेंस तुरंत दिखेगा -->
     <div class="top-bar">
       <div class="player-info">
         <div class="player-id-label">Player ID</div>
@@ -133,7 +132,6 @@
 
     <h2>🎮 Select Game</h2>
     
-    <!-- 4 असली गेम्स ग्रिड - नीचे PLAY NOW बटन के साथ -->
     <div class="games-grid">
       <a href="wingo_game.html" id="game-wingo" class="game-card">
         <div class="game-icon">🎨</div>
@@ -160,7 +158,7 @@
       </a>
     </div>
 
-    <!-- आपके कहे अनुसार बिल्कुल नीचे लगा हुआ बटन बार (Bottom Navbar) -->
+    <!-- स्क्रीन पर सबसे नीचे चिपका रहने वाला बटन बार -->
     <div class="bottom-nav">
       <a href="home.html" class="nav-item active">
         <span>🏠</span>Home
@@ -172,7 +170,6 @@
 
   </div>
 
-  <!-- प्रोफाइल पॉप-अप Box -->
   <div id="profile-modal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeProfile()">&times;</span>
@@ -182,7 +179,6 @@
       <div class="modal-row"><strong>Player ID:</strong> <span id="prof-id">---</span></div>
       <div class="modal-row"><strong>Wallet Balance:</strong> <span id="prof-balance" style="color: #25D366; font-weight: bold;">₹0.00</span></div>
       
-      <!-- वॉलेट बटन्स (रिचार्ज पर recharge.html और विड्रॉल पर withdrawal.html) -->
       <div class="wallet-actions">
         <a href="recharge.html" class="action-btn recharge-btn">Recharge</a>
         <a href="withdrawal.html" class="action-btn withdraw-btn">Withdrawal</a>
@@ -192,11 +188,11 @@
   </div>
   <script>
   // आपकी index.html वाली बिल्कुल असली और री-चेक की हुई क्रेडेंशियल्स
-  const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
+  const supabaseUrl = 'https://supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE'; 
 
   let supabaseClient = null;
-  let currentUserData = null; // लाइव लॉक-अनलॉक डेटा याद रखने के लिए
+  let currentUserData = null; // लाइव लॉक-अनलॉक और बैलेंस डेटा याद रखने के लिए
 
   function initSupabase() {
     try {
@@ -208,6 +204,20 @@
     }
   }
 
+  // स्क्रीन पर बैलेंस, आईडी और प्रोफाइल डेटा तुरंत अपडेट करने का फंक्शन
+  function updateUI(userData) {
+    if (!userData) return;
+    
+    // स्क्रीन पर ऊपर Player ID और बैलेंस तुरंत दिखाना
+    document.getElementById('display-player-id').innerText = userData.player_id || 'N/A';
+    document.getElementById('display-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
+    
+    // प्रोफाइल पॉप-अप बॉक्स के अंदर का डेटा अपडेट करना
+    document.getElementById('prof-name').innerText = userData.name || 'N/A';
+    document.getElementById('prof-id').innerText = userData.player_id || 'N/A';
+    document.getElementById('prof-balance').innerText = '₹' + parseFloat(userData.balance || 0).toFixed(2);
+  }
+
   window.onload = async function() {
     initSupabase();
     
@@ -215,12 +225,13 @@
     const localPlayerId = localStorage.getItem('my77play_id');
     const localPlayerName = localStorage.getItem('my77play_name');
     
+    // अगर यूजर लॉगिन नहीं है, तो उसे वापस लॉगिन पेज पर भेज दो
     if (!loggedInUserMobile) {
       window.location.href = 'index.html';
       return;
     }
 
-    // लोकल स्टोरेज का डेटा तुरंत स्क्रीन पर दिखा दो ताकि लोडिंग न दिखे
+    // १. लोकल स्टोरेज का पुराना डेटा तुरंत चमका दो ताकि यूजर को Loading... ना दिखे
     if (localPlayerId) {
       document.getElementById('display-player-id').innerText = localPlayerId;
       document.getElementById('prof-id').innerText = localPlayerId;
@@ -234,10 +245,9 @@
     } else {
       document.getElementById('prof-name').innerText = "Player";
     }
-    
     document.getElementById('prof-mobile').innerText = loggedInUserMobile;
 
-    // बैकग्राउंड में Supabase से तुरंत ताजा डेटा, बैलेंस और ब्लॉक/लॉक स्टेटस चेक करना
+    // २. बैकग्राउंड में Supabase से तुरंत ताजा डेटा, बैलेंस और ब्लॉक/लॉक स्टेटस चेक करना
     if (supabaseClient) {
       try {
         const { data: userData, error } = await supabaseClient
@@ -247,46 +257,45 @@
           .maybeSingle();
 
         if (userData) {
-          currentUserData = userData; // डेटा को ग्लोबल वेरिएबल में सेव किया
+          currentUserData = userData; 
 
-          // 1. अगर एडमिन ने पहले से पूरे अकाउंट को ब्लॉक कर दिया है
+          // अगर एडमिन ने पहले से पूरे अकाउंट को ब्लॉक कर दिया है
           if (currentUserData.is_blocked === true) {
-            alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है!");
+            alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है! कृपया कस्टमर सपोर्ट से संपर्क करें।");
             handleLogout();
             return;
           }
 
           // डेटा मिलते ही स्क्रीन तुरंत अपडेट करना
-          document.getElementById('display-player-id').innerText = currentUserData.player_id || 'N/A';
-          document.getElementById('display-balance').innerText = parseFloat(currentUserData.balance || 0).toFixed(2);
-          
-          document.getElementById('prof-name').innerText = currentUserData.name || 'N/A';
-          document.getElementById('prof-id').innerText = currentUserData.player_id || 'N/A';
-          document.getElementById('prof-balance').innerText = '₹' + parseFloat(currentUserData.balance || 0).toFixed(2);
+          updateUI(currentUserData);
           
           localStorage.setItem('my77play_id', currentUserData.player_id || '');
           localStorage.setItem('my77play_name', currentUserData.name || '');
 
-          // 2. ⚡ सुपाबेस लाइव रियलटाइम सिस्टम (बिना रिफ्रेश किए तुरंत ब्लॉक और गेम लॉक करने के लिए) ⚡
+          // ३. ⚡ सुपाबेस लाइव रियलटाइम सिस्टम (बैलेंस, ब्लॉक, गेम लॉक सब कुछ १ सेकंड में लाइव अपडेट करने के लिए) ⚡
           supabaseClient
             .channel('live_user_status')
             .on('postgres_changes', { 
               event: 'UPDATE', 
               schema: 'public', 
               table: 'users', 
-              filter: 'mobile=eq.' + loggedInUserMobile 
+              filter: "mobile=eq." + loggedInUserMobile
             }, (payload) => {
-              currentUserData = payload.new; // लाइव नया डेटा अपडेट किया
+              currentUserData = payload.new; // डेटाबेस का नया लाइव डेटा तुरंत वेरिएबल में आया
               
-              // अगर एडमिन ने लाइव बैठे-बैठे ब्लॉक कर दिया, तो तुरंत बाहर फेंको
+              // अगर एडमिन ने लाइव बैठे-बैठे तुरंत ब्लॉक कर दिया
               if (currentUserData && currentUserData.is_blocked === true) {
-                alert("आपका अकाउंट एडमिन द्वारा तुरंत ब्लॉक कर दिया गया है!");
+                alert("आपका अकाउंट एडमिन द्वारा ब्लॉक कर दिया गया है! कृपया कस्टमर सपोर्ट से संपर्क करें।");
                 handleLogout();
+                return;
               }
+
+              // अगर एडमिन ने लाइव बैठे-बैठे बैलेंस बढ़ाया या घटाया, तो तुरंत स्क्रीन पर दिखाओ
+              updateUI(currentUserData);
             })
             .subscribe();
 
-          // 3. गेम्स क्लिक करने पर लाइव लॉक चेक करने का पक्का सिस्टम
+          // ४. गेम्स पर क्लिक करने पर लाइव लॉक चेक करने का पक्का सिस्टम
           document.getElementById('game-wingo').onclick = function(e) {
             if(currentUserData && currentUserData.lock_wingo === true) { 
               e.preventDefault(); 
