@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- 1. यहाँ सुपाबेस लाइब्रेरी को लोड होने की अनुमति दी गई है ताकि TIMED_OUT न हो -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https://*.supabase.co;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Login</title>
-  <!-- भरोसेमंद unpkg लिंक ताकि ब्राउज़र लाइब्रेरी को तुरंत पढ़ सके -->
   <script src="https://unpkg.com"></script>
   <style>
     body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
@@ -56,14 +54,8 @@
   const supabaseUrl = 'https://supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
 
-  let supabaseClient = null;
-
-  function initSupabase() {
-    if (!supabaseClient && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-      supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-    }
-  }
-  initSupabase();
+  // सीधे क्लाइंट बनाया ताकि कनेक्शन बिना देरी के तुरंत चालू हो जाए
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   let isLoginMode = true;
 
@@ -106,7 +98,6 @@
       toggleAuth.innerHTML = "Already have an account? <span>Login Here</span>";
       nameInput.style.display = 'block';
     }
-    // मोड स्विच होते ही बटन अनलॉक होगा
     submitBtn.disabled = false;
   }
 
@@ -119,7 +110,6 @@
     e.preventDefault();
     errorBox.style.display = 'none';
     successBox.style.display = 'none';
-    initSupabase();
 
     if (!supabaseClient) {
       showError("Connection down. Please refresh the page.");
@@ -214,7 +204,6 @@
         showSuccess("Registration Successful! Please login.");
         setTimeout(() => {
           toggleMode();
-          // 2. रजिस्ट्रेशन के बाद बटन को वापस एक्टिव कर दिया ताकि तुरंत लॉगिन हो सके
           submitBtn.disabled = false;
         }, 1200);
       }
@@ -222,7 +211,7 @@
       showError("Something went wrong!");
       submitBtn.disabled = false;
     }
-  } // 3. छूटा हुआ ब्रैकेट बंद किया गया
+  }
 </script>
 </body>
 </html>
