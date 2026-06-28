@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>my77play - VIP Control Center</title>
+  <!-- Supabase JS Library -->
+  <script src="https://jsdelivr.net"></script>
+  <style>
+    :root {
+      --bg-color: #06060c;
+      --card-bg: #11111f;
+      --primary-color: #ff0055; /* एडमिन के लिए डेंजर रेड/गुलाबी नियॉन थीम */
+      --primary-glow: rgba(255, 0, 85, 0.4);
+      --success-color: #00ffcc;
+      --success-glow: rgba(0, 255, 204, 0.3);
+      --text-color: #ffffff;
+      --text-muted: #8e8e93;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    /* 📱 💻 यूनिवर्सल रिस्पॉन्सिव फ्रेम (पीसी और मोबाइल दोनों के लिए परफेक्ट) */
+    .admin-wrapper {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-color);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 40px rgba(255, 0, 85, 0.15);
+      border: 1px solid rgba(255, 0, 85, 0.2);
+      margin: auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--primary-color);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .admin-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    /* 🔒 एड民 लॉगिन गेटवे स्टाइल */
+    #admin-login-box {
+      display: block; /* शुरू में लॉगिन बॉक्स दिखेगा */
+    }
+
+    /* मुख्य कंट्रोल पैनल (लॉगिन के बाद खुलेगा) */
+    #admin-main-panel {
+      display: none;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: bold;
+    }
+
+    input[type="number"], input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 14px;
+      background: #09090e;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: bold;
+      outline: none;
+      transition: 0.2s;
+    }
+    input:focus { border-color: var(--primary-color); box-shadow: 0 0 12px var(--primary-glow); }
+
+    /* बटन स्टाइल्स */
+    .admin-btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-block;
+      text-align: center;
+    }
+    .btn-action { background: var(--primary-color); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
+    .btn-save { background: var(--success-color); color: #000; box-shadow: 0 4px 15px var(--success-glow); margin-top: 15px; }
+    .admin-btn:active { transform: scale(0.97); }
+
+    /* लाइव स्विच (Toggle Switches) डिज़ाइन */
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .control-row:last-child { border-bottom: none; }
+
+    .control-info p { font-size: 0.95rem; font-weight: bold; color: #fff; }
+    .control-info span { font-size: 0.75rem; color: var(--text-muted); }
+
+    .switch {
+      position: relative; display: inline-block; width: 52px; height: 28px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #2c2c3e; border-radius: 34px; transition: .3s;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px;
+      background-color: white; border-radius: 50%; transition: .3s;
+    }
+    input:checked + .slider { background-color: var(--success-color); }
+    input:checked + .slider:before { transform: translateX(24px); }
+
+    /* स्टेटस अलर्ट बॉक्स */
+    #status-msg {
+      text-align: center; font-size: 0.9rem; font-weight: bold; margin-bottom: 15px; display: none;
+      padding: 12px; border-radius: 8px;
+    }
+    .status-success { background: rgba(0, 255, 204, 0.1); color: var(--success-color); border: 1px solid var(--success-color); }
+    .status-error { background: rgba(255, 0, 85, 0.1); color: var(--primary-color); border: 1px solid var(--primary-color); }
+
+    .user-meta-box {
+      background: #09090e; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.02);
+    }
+    .meta-line { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 6px; }
+    .meta-line:last-child { margin-bottom: 0; }
+    .meta-line span:first-child { color: var(--text-muted); }
+    .meta-line span:last-child { color: #fff; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="admin-wrapper">
+    
+    <!-- ================= 🔒 एडमिन लॉगिन गेटवे ================= -->
+    <div id="admin-login-box">
+      <h1>Admin Security Gate</h1>
+      <div class="admin-card">
+        <div class="form-group">
+          <label>Admin ID Name</label>
+          <input type="text" id="admin-id-input" placeholder="Enter Admin ID..." autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Secret Password</label>
+          <input type="password" id="admin-pass-input" placeholder="Enter Password...">
+        </div>
+        <button class="admin-btn btn-action" onclick="handleAdminLogin()">Secure Access</button>
+      </div>
+    </div>
+
+    <!-- ================= 💻 मुख्य कंट्रोल पैनल (लॉगिन के बाद चालू होगा) ================= -->
+    <div id="admin-main-panel">
+      <h1>VIP Control Center</h1>
+
+      <!-- लाइव स्टेटस मैसेज बॉक्स -->
+      <div id="status-msg"></div>
+
+      <!-- १. यूजर सर्च सेक्शन -->
+      <div class="admin-card">
+        <div class="form-group">
+          <label>Search Player Mobile Number</label>
+          <input type="number" id="search-mobile-input" placeholder="Enter 10 Digit Mobile..." oninput="if(this.value.length > 10) this.value = this.value.slice(0,10);">
+        </div>
+        <button class="admin-btn btn-action" onclick="searchUserByMobile()">Search Player Data</button>
+      </div>
+
+      <!-- २. यूजर डेटा और बैलेंस कंट्रोल बॉक्स -->
+      <div class="admin-card" id="user-controls-box" style="opacity: 0.5; pointer-events: none;">
+        <label style="color: var(--primary-color); font-weight: 900; margin-bottom: 12px; display: block; text-align: center;">Active Player Control</label>
+        
+        <!-- यूजर की बुनियादी जानकारी -->
+        <div class="user-meta-box">
+          <div class="meta-line"><span>Name:</span><span id="meta-name">------</span></div>
+          <div class="meta-line"><span>Player ID:</span><span id="meta-id">------</span></div>
+          <div class="meta-line"><span>Mobile:</span><span id="meta-mobile">------</span></div>
+        </div>
+
+        <!-- वॉलेट बैलेंस मॉडिफायर -->
+        <div class="form-group">
+          <label>Modify Wallet Balance (₹)</label>
+          <input type="number" id="user-balance-input" placeholder="0.00" step="any">
+        </div>
+
+        <!-- आईडी ब्लॉक सिस्टम -->
+        <div class="control-row">
+          <div class="control-info">
+            <p>Temporary ID Block</p>
+            <span>Instantly freeze complete user access</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-block">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <label style="color: var(--primary-color); font-weight: 800; margin-top: 15px; margin-bottom: 8px; display: block; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">Individual Game Locks</label>
+
+        <!-- १. माइंस गेम लॉक -->
+        <div class="control-row">
+          <div class="control-info">
+            <p>Mines Game Lock</p>
+            <span>Show lock overlay on Mines Game</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-lock-mine">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- २. विंगो गेम लॉक -->
+        <div class="control-row">
+          <div class="control-info">
+            <p>WinGo Game Lock</p>
+            <span>Show lock overlay on WinGo Game</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-lock-wingo">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- ३. स्लॉट्स गेम लॉक -->
+        <div class="control-row">
+          <div class="control-info">
+            <p>Slots Game Lock</p>
+            <span>Show lock overlay on Slots Casino</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-lock-slot">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- ४. हेड एंड टेल गेम लॉक -->
+        <div class="control-row">
+          <div class="control-info">
+            <p>Head & Tail Lock</p>
+            <span>Show lock overlay on Coin Flip</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-lock-head-tail">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- डेटाबेस अपडेट बटन -->
+        <button class="admin-btn btn-save" onclick="saveUserDataToDatabase()">Update Player Settings</button>
+      </div>
+
+    </div>
+
+  </div> <!-- .admin-wrapper क्लोज -->
+<script>
+    // 🛠️ Supabase Credentials (आपके प्रोजेक्ट से जुड़े हुए)
+    const supabaseUrl = 'https://supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
+    
+    let supabaseClient = null;
+    let targetUserRow = null; // जिस यूजर को हम सर्च करेंगे उसका डेटा यहाँ स्टोर होगा
+
+    // 🔐 एडमिन लॉगिन क्रेडेंशियल्स (आप अपनी पसंद से बदल सकते हैं)
+    const secureAdminId = "admin77";
+    const secureAdminPass = "play777";
+
+    function initSupabase() {
+      try {
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+          supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        }
+      } catch(e) {
+        console.log("Supabase init error:", e);
+      }
+    }
+
+    // 🔒 एडमिन लॉगिन हैंडलर (पीसी और मोबाइल दोनों पर 100% चालू)
+    function handleAdminLogin() {
+      const enteredId = document.getElementById('admin-id-input').value.trim();
+      const enteredPass = document.getElementById('admin-pass-input').value.trim();
+
+      if (enteredId === secureAdminId && enteredPass === secureAdminPass) {
+        document.getElementById('admin-login-box').style.display = 'none';
+        document.getElementById('admin-main-panel').style.display = 'block';
+        initSupabase(); // लॉगिन सक्सेस होने पर ही सुपबेस कनेक्शन चालू होगा
+        showStatus("Access Granted! Welcome to Admin Panel.", "success");
+      } else {
+        alert("Incorrect Admin ID or Password! Access Denied.");
+      }
+    }
+
+    // 🔍 मोबाइल नंबर से यूजर का लाइव डेटा खोजना
+    async function searchUserByMobile() {
+      const searchMobile = document.getElementById('search-mobile-input').value.trim();
+      
+      if (!searchMobile || searchMobile.length !== 10) {
+        showStatus("Please enter a valid 10-digit mobile number!", "error");
+        return;
+      }
+
+      if (!supabaseClient) initSupabase();
+      showStatus("Searching player data...", "success");
+
+      try {
+        // नियम ३: डेटाबेस (int8) के साथ सिंक के लिए नंबर में बदलना अनिवार्य है
+        const numMobile = Number(searchMobile);
+
+        const { data, error } = await supabaseClient
+          .from('users')
+          .select('*')
+          .eq('mobile', numMobile)
+          .maybeSingle();
+
+        if (error) {
+          showStatus("Database Error: " + error.message, "error");
+          return;
+        }
+
+        if (data) {
+          targetUserRow = data; // यूजर मिल गया
+          
+          // १. यूजर की बुनियादी जानकारी स्क्रीन पर सजाना
+          document.getElementById('meta-name').innerText = data.name || "No Name";
+          document.getElementById('meta-id').innerText = data.player_id || "------";
+          document.getElementById('meta-mobile').innerText = data.mobile || "------";
+
+          // २. बैलेंस इनपुट बॉक्स में ताज़ा बैलेंस डालना
+          document.getElementById('user-balance-input').value = parseFloat(data.balance || 0).toFixed(2);
+
+          // ३. सभी लाइव स्विचेस (Toggles) की पोजीशन सेट करना
+          document.getElementById('toggle-block').checked = data.is_blocked || false;
+          document.getElementById('toggle-lock-mine').checked = data.lock_mine || false;
+          document.getElementById('toggle-lock-wingo').checked = data.lock_wingo || false;
+          document.getElementById('toggle-lock-slot').checked = data.lock_slot || false;
+          document.getElementById('toggle-lock-head-tail').checked = data.lock_head_tail || false;
+
+          // कंट्रोल बॉक्स को एक्टिव (चमकदार) करना
+          const ctrlBox = document.getElementById('user-controls-box');
+          ctrlBox.style.opacity = "1";
+          ctrlBox.style.pointerEvents = "auto";
+
+          showStatus("Player found! Data loaded successfully.", "success");
+        } else {
+          showStatus("No player found with this mobile number!", "error");
+          resetUserFields();
+        }
+      } catch (err) {
+        showStatus("Crash Error: " + err.message, "error");
+      }
+    }
+
+    // 💾 सेटिंग्स को मॉडिफाई करके सीधे Supabase टेबल में सुरक्षित करना
+    async function saveUserDataToDatabase() {
+      if (!targetUserRow || !supabaseClient) return;
+
+      const newBalance = parseFloat(document.getElementById('user-balance-input').value) || 0;
+      const blockStatus = document.getElementById('toggle-block').checked;
+      const lockMine = document.getElementById('toggle-lock-mine').checked;
+      const lockWingo = document.getElementById('toggle-lock-wingo').checked;
+      const lockSlot = document.getElementById('toggle-lock-slot').checked;
+      const lockHeadTail = document.getElementById('toggle-lock-head-tail').checked;
+
+      showStatus("Updating player configurations...", "success");
+
+      try {
+        const { error } = await supabaseClient
+          .from('users')
+          .update({
+            balance: newBalance,
+            is_blocked: blockStatus,
+            lock_mine: lockMine,
+            lock_wingo: lockWingo,
+            lock_slot: lockSlot,
+            lock_head_tail: lockHeadTail
+          })
+          .eq('mobile', targetUserRow.mobile); // टारगेट यूजर के मोबाइल नंबर पर लॉक
+
+        if (error) {
+          showStatus("Update Failed: " + error.message, "error");
+        } else {
+          showStatus("Player settings updated successfully in database! 🚀", "success");
+          
+          // लोकल स्टोर की याददाश्त को ताज़ा रखने के लिए वेरिएबल अपडेट करना
+          targetUserRow.balance = newBalance;
+          targetUserRow.is_blocked = blockStatus;
+          targetUserRow.lock_mine = lockMine;
+          targetUserRow.lock_wingo = lockWingo;
+          targetUserRow.lock_slot = lockSlot;
+          targetUserRow.lock_head_tail = lockHeadTail;
+        }
+      } catch (err) {
+        showStatus("Crash Error: " + err.message, "error");
+      }
+    }
+
+    // अलर्ट और स्टेटस मैसेज दिखाने का फंक्शन
+    function showStatus(text, type) {
+      const msgBox = document.getElementById('status-msg');
+      msgBox.innerText = text;
+      msgBox.className = ""; // पुराना साफ़ करें
+      
+      if (type === "success") {
+        msgBox.classList.add('status-success');
+      } else {
+        msgBox.classList.add('status-error');
+      }
+      msgBox.style.display = 'block';
+    }
+
+    // नया सर्च करने पर पुराना डेटा साफ़ करने के लिए
+    function resetUserFields() {
+      document.getElementById('meta-name').innerText = "------";
+      document.getElementById('meta-id').innerText = "------";
+      document.getElementById('meta-mobile').innerText = "------";
+      document.getElementById('user-balance-input').value = "";
+      
+      document.getElementById('toggle-block').checked = false;
+      document.getElementById('toggle-lock-mine').checked = false;
+      document.getElementById('toggle-lock-wingo').checked = false;
+      document.getElementById('toggle-lock-slot').checked = false;
+      document.getElementById('toggle-lock-head-tail').checked = false;
+
+      const ctrlBox = document.getElementById('user-controls-box');
+      ctrlBox.style.opacity = "0.5";
+      ctrlBox.style.pointerEvents = "none";
+    }
+  </script>
+</body>
+</html>
