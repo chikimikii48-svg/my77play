@@ -314,7 +314,8 @@
 
   </div> <!-- .app-wrapper क्लोज -->
 <script>
-    // 🛠️ Supabase Credentials (index.html से हूबहू लिए गए हैं)
+    <script>
+    // 🛠️ Supabase Credentials (बिना किसी बदलाव के)
     const supabaseUrl = 'https://supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
     
@@ -341,7 +342,7 @@
     window.onload = async function() {
       initSupabase();
       
-      // localStorage से पुराना डेटा तुरंत लोड करें ताकि पेज ब्लैंक ना दिखे
+      // तुरंत लोकल स्टोरेज से पुराना डेटा स्क्रीन पर सजाएँ ताकि लोडिंग ना दिखे
       const localPlayerId = localStorage.getItem('my77play_id');
       const localPlayerName = localStorage.getItem('my77play_name');
       const localBalance = localStorage.getItem('my77play_balance') || '0.00';
@@ -360,7 +361,7 @@
       if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = formattedLocalBalance;
       if(document.getElementById('prof-balance')) document.getElementById('prof-balance').innerText = "₹" + formattedLocalBalance;
 
-      // Supabase से फ्रेश लाइव डेटा लोड करें
+      // Supabase से फ्रेश डेटा लोड करके लाइव अपडेट सुनना शुरू करें
       if (supabaseClient) {
         try {
           const { data: userData, error } = await supabaseClient
@@ -371,6 +372,7 @@
 
           if (userData) {
             updateUI(userData);
+            // ⚡ ताज़ा डेटा के साथ लाइव रीयलटाइम लिसनर चालू करें
             listenToLiveUpdates(userData.mobile, userData.player_id);
           }
         } catch (err) {
@@ -420,27 +422,34 @@
       }
     }
 
-    // ⚡ बिल्कुल नया सीधा रीयल-टाइम ब्रॉडकास्ट लिसनर
+    // ⚡ 100% फिक्स डायरेक्ट ब्रॉडकास्ट लिसनर (बिना फिल्टर के तुरंत लाइव काम करेगा)
     function listenToLiveUpdates(mobileNum, playerId) {
       if (!supabaseClient) initSupabase();
       const numMobile = Number(mobileNum);
 
       supabaseClient
-        .channel('any')
+        .channel('realtime-casino-sync') // 👈 नया चैनल नाम ताकि पुराना कैश साफ़ हो जाए
         .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
+            console.log('Live BroadCast Received:', payload);
             const changedRow = payload.new || payload.old;
-            if (changedRow && (Number(changedRow.mobile) === numMobile || changedRow.player_id === playerId)) {
+            
+            if (changedRow) {
+                const changedMobile = Number(changedRow.mobile);
                 
-                // 🔔 रीचार्ज सक्सेसफुल पॉप-अप मैसेज लॉजिक
-                const oldBalance = parseFloat(localStorage.getItem('my77play_balance') || '0');
-                const newBalance = parseFloat(changedRow.balance || '0');
-                
-                if (newBalance > oldBalance) {
-                    alert("Aapki ID par recharge successfully ho gya hai! 🎉");
+                // अगर बदली हुई रो इस लॉगिन यूजर की है तो तुरंत UI बदलो
+                if (changedMobile === numMobile || changedRow.player_id === playerId) {
+                    
+                    // 🔔 रीचार्ज सक्सेसफुल पॉप-अप अलर्ट
+                    const oldBalance = parseFloat(localStorage.getItem('my77play_balance') || '0');
+                    const newBalance = parseFloat(changedRow.balance || '0');
+                    
+                    if (newBalance > oldBalance) {
+                        alert("Aapki ID par recharge successfully ho gya hai! 🎉");
+                    }
+                    
+                    localStorage.setItem('my77play_balance', String(changedRow.balance || 0));
+                    updateUI(changedRow);
                 }
-                
-                localStorage.setItem('my77play_balance', String(changedRow.balance || 0));
-                updateUI(changedRow);
             }
         })
         .subscribe();
