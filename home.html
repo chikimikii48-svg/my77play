@@ -9,10 +9,10 @@
   <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg-color: #06060c;
-      --card-bg: #11111f;
+      --bg-color: #09090e;
+      --card-bg: #151522;
       --primary-color: #00ffcc;
-      --primary-glow: rgba(0, 255, 204, 0.4);
+      --primary-glow: rgba(0, 255, 204, 0.3);
       --text-color: #ffffff;
       --text-muted: #8e8e93;
       --error-color: #ff3b30;
@@ -26,33 +26,34 @@
       color: var(--text-color);
       display: flex;
       justify-content: center;
-      overflow: hidden; /* स्क्रीन को बाहर भागने से रोकने के लिए */
     }
 
-    /* 📱 मोबाइल फ्रेम - स्क्रीन फिट हाइट */
+    /* 📱 मोबाइल फ्रेम - पहले जैसा बड़ा प्रीमियम रूप */
     .app-wrapper {
       width: 100%;
       max-width: 420px;
-      height: 100vh;
+      min-height: 100vh;
       background: var(--bg-color);
       position: relative;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 30px rgba(0,0,0,0.9);
+      padding-bottom: 90px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
     }
 
-    /* कसीनो हेडर */
+    /* प्रीमियम हेडर - सबसे ऊपर आईडी दिखाने के लिए */
     header {
       background: var(--card-bg);
-      padding: 12px 15px;
+      padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid rgba(0, 255, 204, 0.2);
+      border-bottom: 1px solid rgba(0, 255, 204, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 99;
     }
 
     .brand-title {
-      font-size: 1.3rem;
+      font-size: 1.4rem;
       font-weight: 900;
       color: var(--primary-color);
       letter-spacing: 1px;
@@ -60,70 +61,60 @@
     }
 
     .top-user-id {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #00ffcc;
       background: rgba(0, 255, 204, 0.05);
       padding: 4px 8px;
-      border-radius: 6px;
+      border-radius: 4px;
       border: 1px solid rgba(0, 255, 204, 0.2);
       font-weight: bold;
     }
 
-    /* स्क्रॉल होने वाला मुख्य हिस्सा */
-    .main-content { 
-      flex: 1; 
-      padding: 12px; 
-      overflow-y: auto; 
-      padding-bottom: 80px; 
-    }
-
+    .main-content { padding: 15px; }
     .page-section { display: none; }
     .page-section.active { display: block; }
 
     /* 🪙 वॉलेट बैलेंस कार्ड */
     .wallet-card {
-      background: linear-gradient(135deg, #16162a 0%, #0b0b14 100%);
-      border: 1px solid rgba(0, 255, 204, 0.3);
-      border-radius: 14px;
-      padding: 15px;
+      background: linear-gradient(135deg, #1e1e30 0%, #11111a 100%);
+      border: 1px solid rgba(0, 255, 204, 0.2);
+      border-radius: 16px;
+      padding: 20px;
       text-align: center;
-      box-shadow: 0 6px 20px rgba(0, 255, 204, 0.1);
-      margin-bottom: 15px;
-      position: relative;
-      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      margin-bottom: 25px;
     }
 
     .wallet-title {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
 
     .wallet-balance {
-      font-size: 2.1rem;
+      font-size: 2.3rem;
       font-weight: 800;
       color: var(--primary-color);
       text-shadow: 0 0 15px var(--primary-glow);
     }
 
-    /* गेम्स टाइटल सेक्शन */
+    /* गेम्स ग्रिड टाइटल */
     .section-title {
-      font-size: 1rem;
-      font-weight: 800;
-      margin-bottom: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 15px;
       letter-spacing: 0.5px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      text-transform: uppercase;
+      gap: 8px;
     }
     .section-title::before {
       content: '';
       display: inline-block;
       width: 4px;
-      height: 14px;
+      height: 16px;
       background: var(--primary-color);
       border-radius: 2px;
     }
@@ -131,84 +122,84 @@
     .games-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      gap: 12px;
     }
-
-    /* 🎮 असली जैसा कसीनो गेम कार्ड लुक */
+/* 🎮 बड़ा और असली फोटो बैकग्राउंड गेम कार्ड लुक */
     .game-card {
       position: relative;
-      border-radius: 12px;
+      border-radius: 14px;
       text-decoration: none;
       color: #fff;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      height: 110px; /* थोड़ा छोटा किया ताकि स्क्रीन पर तुरंत फिट दिखे */
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      height: 140px; /* पहले जैसी बड़ी हाइट */
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
       transition: transform 0.2s;
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.05);
     }
+    .game-card:active { transform: scale(0.97); }
 
-    /* असली गेम बैकग्राउंड इमेजेस */
-    #game-mine { background: linear-gradient(to top, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.1)), url('https://unsplash.com/photo-1606167668584-78701c57f13d?w=400&auto=format&fit=crop&q=60') center/cover; }
-    #game-wingo { background: linear-gradient(to top, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.1)), url('https://unsplash.com/photo-1518156677180-95a2893f3e9f?w=400&auto=format&fit=crop&q=60') center/cover; }
-    #game-slot { background: linear-gradient(to top, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.1)), url('https://unsplash.com/photo-1596838132731-3301c3fd4317?w=400&auto=format&fit=crop&q=60') center/cover; }
-    #game-head-tail { background: linear-gradient(to top, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.1)), url('https://unsplash.com/photo-1622630998477-20aa696ecb05?w=400&auto=format&fit=crop&q=60') center/cover; }
+    /* असली गेम बैकग्राउंड पिक्चर्स */
+    #game-mine { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
+    #game-wingo { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
+    #game-slot { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
+    #game-head-tail { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
 
-    .game-info-box { padding: 8px; width: 100%; }
-    .game-name { font-size: 0.95rem; font-weight: 800; text-transform: uppercase; }
-    .game-status { font-size: 0.6rem; color: var(--primary-color); font-weight: bold; text-transform: uppercase; }
+    .game-info-box { padding: 12px; width: 100%; }
+    .game-name { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .game-status { font-size: 0.7rem; color: var(--primary-color); margin-top: 3px; display: block; font-weight: bold; }
 
     /* 🔒 लॉक ओवरले स्टाइल */
-    .game-card.locked { filter: grayscale(1); opacity: 0.4; }
+    .game-card.locked { filter: grayscale(1); opacity: 0.4; cursor: not-allowed; }
     .game-card.locked::after {
       content: '🔒 LOCKED';
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.7);
       display: flex; justify-content: center; align-items: center;
-      font-size: 0.9rem; font-weight: 900; color: #ff3b30;
+      font-size: 1rem; font-weight: 900; color: #ff3b30;
     }
 
     /* 👤 प्रोफाइल डिजाइन */
     .profile-card {
       background: var(--card-bg);
       border-radius: 16px;
-      padding: 20px 15px;
+      padding: 20px;
       border: 1px solid rgba(255,255,255,0.05);
     }
-    .profile-header-box { text-align: center; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 15px; }
-    .profile-avatar { width: 65px; height: 65px; background: var(--primary-color); color: #000; font-size: 2rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; margin-bottom: 8px; box-shadow: 0 0 15px var(--primary-glow); }
+    .profile-header-box { text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+    .profile-avatar { width: 65px; height: 65px; background: var(--primary-color); color: #000; font-size: 2rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; margin-bottom: 10px; box-shadow: 0 0 15px var(--primary-glow); }
     
-    .profile-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.9rem; }
+    .profile-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.95rem; }
     .profile-item span:first-child { color: var(--text-muted); }
-    .profile-item span:last-child { color: #fff; font-weight: bold; }
+    .profile-item span:last-child { color: #fff; font-weight: 600; }
 
-    .profile-actions { display: flex; gap: 10px; margin-top: 15px; }
-    .action-btn { flex: 1; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: bold; text-transform: uppercase; text-decoration: none; text-align: center; display: inline-block; }
+    .profile-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .action-btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; text-transform: uppercase; text-decoration: none; text-align: center; display: inline-block; }
     .btn-recharge { background: var(--primary-color); color: #000; box-shadow: 0 4px 12px var(--primary-glow); }
     .btn-withdraw { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
     
-    .logout-btn { background: #ff3b30; color: #fff; border: none; width: 100%; margin-top: 15px; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: bold; text-transform: uppercase; }
+    .logout-btn { background: #ff3b30; color: #fff; border: none; width: 100%; margin-top: 20px; padding: 14px; border-radius: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
 
     /* 🏠👤 बॉटम फिक्स नेविगेशन बटन्स */
     .bottom-nav {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      background: #0d0d18;
-      border-top: 1px solid rgba(0, 255, 204, 0.1);
+      background: #11111a;
+      border-top: 1px solid rgba(255,255,255,0.05);
       display: flex;
       justify-content: space-around;
-      padding: 10px 0;
+      padding: 12px 0;
       z-index: 100;
     }
     .nav-item {
       background: transparent; border: none; color: var(--text-muted);
-      font-size: 0.8rem; font-weight: 700; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
       width: 45%;
     }
-    .nav-item.active { color: var(--primary-color); text-shadow: 0 0 8px var(--primary-glow); }
+    .nav-item.active { color: var(--primary-color); }
     .nav-icon { font-size: 1.3rem; }
 
     /* 🚫 फुल स्क्रीन ब्लॉक स्क्रीन ओवरले */
@@ -224,16 +215,16 @@
 
   <div class="app-wrapper">
     
-    <!-- ब्लॉक स्क्रीन ओवरले -->
+    <!-- 🚫 ब्लॉक स्क्रीन ओवरले -->
     <div id="block-screen">
       <span style="font-size: 4rem;">🚫</span>
       <h1 style="margin: 15px 0 5px 0; font-size: 1.5rem; font-weight: 900; text-align: center;">
-        आपकी आईडी ब्लॉक कर दिया गया है!<br>Your ID is blocked!
+        Aapki ID temporary block kar di gayi hai.<br>Your ID is blocked!
       </h1>
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 15px;">Assistance ke liye support team se baat karein.</p>
     </div>
 
-    <!-- हेडर -->
+    <!-- हेडर (सबसे ऊपर यूजर आईडी दिखाने के लिए) -->
     <header>
       <div class="brand-title">MY77PLAY</div>
       <div class="top-user-id" id="display-player-id">ID: Loading...</div>
@@ -252,8 +243,6 @@
         <div class="section-title">Popular Games</div>
         <div class="games-grid">
           
-          <div class="games-grid">
-          
           <!-- 1. माइंस गेम -->
           <a href="mine_game.html" id="game-mine" class="game-card">
             <div class="game-info-box">
@@ -270,7 +259,7 @@
             </div>
           </a>
 
-          <!-- 3. स्लॉट्स गेम -->
+          <!-- 3. कसीनो स्लॉट्स गेम -->
           <a href="casino_slot.html" id="game-slot" class="game-card">
             <div class="game-info-box">
               <p class="game-name">Slots</p>
@@ -287,6 +276,43 @@
           </a>
 
         </div>
+      </div>
+
+      <!-- ================= PROFILE SECTION ================= -->
+      <div id="profile-section" class="page-section">
+        <div class="profile-card">
+          <div class="profile-header-box">
+            <div class="profile-avatar" id="prof-avatar-letter">P</div>
+            <h2 style="margin:0; font-size:1.3rem;" id="prof-name">Player</h2>
+          </div>
+          
+          <div class="profile-item"><span>Player ID</span><span id="prof-id">------</span></div>
+          <div class="profile-item"><span>Mobile Number</span><span id="prof-mobile">------</span></div>
+          <div class="profile-item"><span>Total Balance</span><span style="color: var(--primary-color);" id="prof-balance">₹0.00</span></div>
+
+          <div class="profile-actions">
+            <a href="recharge.html" class="action-btn btn-recharge">Recharge</a>
+            <a href="withdrawal.html" class="action-btn btn-withdraw">Withdraw</a>
+          </div>
+
+          <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+        </div>
+      </div>
+
+    </div> <!-- .main-content क्लोज -->
+
+    <div class="bottom-nav">
+      <button class="nav-item active" id="nav-home-btn" onclick="switchTab('home')">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" id="nav-profile-btn" onclick="switchTab('profile')">
+        <span class="nav-icon">👤</span>
+        <span>Profile</span>
+      </button>
+    </div>
+
+  </div> <!-- .app-wrapper क्लोज -->
 <script>
     // 🛠️ Supabase Credentials (index.html से हूबहू लिए गए हैं)
     const supabaseUrl = 'https://supabase.co';
@@ -362,8 +388,8 @@
             // ⚡ रीयल-टाइम लिसनर चालू करें (शुद्ध नंबर मोबाइल और प्लेयर आईडी दोनों पर लॉक)
             listenToLiveUpdates(userData.mobile, userData.player_id);
             
-            // localStorage को नए ताज़ा डेटा से अपडेट करें
-            localStorage.setItem('my77play_id', userData.player_id || '');
+            // localStorage को नए ताज़ा...
+localStorage.setItem('my77play_id', userData.player_id || '');
             localStorage.setItem('my77play_name', userData.name || '');
             localStorage.setItem('my77play_balance', String(userData.balance || 0));
           } else {
@@ -396,7 +422,7 @@
       if(document.getElementById('prof-avatar-letter')) document.getElementById('prof-avatar-letter').innerText = uName.charAt(0).toUpperCase();
       if(document.getElementById('prof-mobile')) document.getElementById('prof-mobile').innerText = userRow.mobile || "------";
 
-      // 3. लाइव वॉलेट बैलेंस अपडेट
+      // 3. लाइव वॉलेट बैलेंस अपडेट (आपका पसंदीदा बिना रिफ्रेश लाइव लॉजिक)
       const formattedBalance = parseFloat(userRow.balance || 0).toFixed(2);
       if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = formattedBalance;
       if(document.getElementById('prof-balance')) document.getElementById('prof-balance').innerText = "₹" + formattedBalance;
@@ -422,10 +448,11 @@
       }
     }
 
-    // ⚡ रीयल-टाइम लिसनर (बिना रीलोड तुरंत स्क्रीन अपडेट)
+    // ⚡ रीयल-टाइम लिसनर (टेबल में बदलाव होते ही बिना रीलोड तुरंत स्क्रीन अपडेट)
     function listenToLiveUpdates(mobileNum, playerId) {
       if (!supabaseClient) initSupabase();
 
+      // नियम ३: सुनिश्चित करें कि मोबाइल नंबर नंबर फॉर्मेट में ही सिंक सुने
       const numMobile = Number(mobileNum);
 
       supabaseClient
