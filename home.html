@@ -2,344 +2,284 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 🛠️ यहाँ cdn.jsdelivr.net को पूरी तरह से ठीक कर दिया गया है -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>my77play - Dashboard</title>
   <!-- Supabase JS Library -->
   <script src="https://jsdelivr.net"></script>
   <style>
     :root {
-      --bg-color: #0f0f1a;
-      --card-bg: #1c1c27;
+      --bg-color: #09090e;
+      --card-bg: #151522;
       --primary-color: #00ffcc;
-      --text-color: #fff;
-      --text-muted: #aaa;
-      --error-color: #ff4d4d;
+      --primary-glow: rgba(0, 255, 204, 0.3);
+      --text-color: #ffffff;
+      --text-muted: #8e8e93;
+      --error-color: #ff3b30;
+      --gradient-mine: linear-gradient(135deg, #ff416c, #ff4b2b);
+      --gradient-wingo: linear-gradient(135deg, #8a2387, #e94057, #f27121);
+      --gradient-slot: linear-gradient(135deg, #11998e, #38ef7d);
+      --gradient-head: linear-gradient(135deg, #f12711, #f5af19);
     }
 
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
     body {
-      background: var(--bg-color);
-      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
       color: var(--text-color);
-      padding-bottom: 80px; /* बॉटम नेविगेशन के लिए स्पेस */
+      display: flex;
+      justify-content: center;
     }
 
-    /* Header Styles */
+    /* 📱 मोबाइल फ्रेम - इसके कारण यह कंप्यूटर पर भी मोबाइल जैसा दिखेगा */
+    .app-wrapper {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: var(--bg-color);
+      position: relative;
+      padding-bottom: 90px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      overflow-x: hidden;
+    }
+
+    /* प्रीमियम हेडर */
     header {
       background: var(--card-bg);
       padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--primary-color);
-      box-shadow: 0 4px 20px rgba(0, 255, 204, 0.1);
+      border-bottom: 1px solid rgba(0, 255, 204, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 99;
     }
 
-    .user-info h3 {
-      margin: 0;
+    .brand-title {
+      font-size: 1.4rem;
+      font-weight: 900;
       color: var(--primary-color);
-      font-size: 1.2rem;
-      text-transform: uppercase;
       letter-spacing: 1px;
+      text-shadow: 0 0 10px var(--primary-glow);
+      margin: 0;
     }
 
-    /* Main Container */
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 0 15px;
+    .top-user-id {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* Sections toggling */
-    .page-section {
-      display: none;
-    }
-    .page-section.active {
-      display: block;
-    }
+    .main-content { padding: 15px; }
 
-    /* Wallet Card */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* कसीनो स्टाइल वॉलेट कार्ड */
     .wallet-card {
-      background: linear-gradient(135deg, #1c1c27 0%, #252538 100%);
-      border: 1px solid var(--primary-color);
+      background: linear-gradient(135deg, #1e1e30 0%, #11111a 100%);
+      border: 1px solid rgba(0, 255, 204, 0.2);
       border-radius: 16px;
-      padding: 25px;
+      padding: 20px;
       text-align: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      margin-bottom: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      margin-bottom: 25px;
     }
 
     .wallet-title {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      margin-bottom: 10px;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
     }
 
     .wallet-balance {
-      font-size: 2.5rem;
-      font-weight: bold;
+      font-size: 2.3rem;
+      font-weight: 800;
       color: var(--primary-color);
-      text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+      text-shadow: 0 0 15px var(--primary-glow);
     }
 
-    /* Games Grid */
+    /* असली गेम डिज़ाइन ग्रिड */
     .section-title {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
+      font-weight: 700;
       margin-bottom: 15px;
-      text-transform: uppercase;
-      border-left: 3px solid var(--primary-color);
-      padding-left: 10px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--primary-color);
+      border-radius: 2px;
     }
 
     .games-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
+      gap: 12px;
     }
 
+    /* प्रो-गेमिंग कार्ड्स */
     .game-card {
-      background: var(--card-bg);
-      border: 1px solid #2c2c3e;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
+      position: relative;
+      border-radius: 14px;
+      padding: 18px 12px;
       text-decoration: none;
-      color: var(--text-color);
-      transition: 0.3s;
+      color: #fff;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      position: relative;
+      align-items: flex-start;
+      justify-content: space-between;
+      height: 130px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      overflow: hidden;
     }
+    .game-card:active { transform: scale(0.97); }
 
-    .game-card:hover:not(.locked) {
-      border-color: var(--primary-color);
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(0, 255, 204, 0.2);
+    /* अलग-अलग गेम्स के प्रीमियम बैकग्राउंड */
+    #game-mine { background: var(--gradient-mine); }
+    #game-wingo { background: var(--gradient-wingo); }
+    #game-slot { background: var(--gradient-slot); }
+    #game-head-tail { background: var(--gradient-head); }
+
+    /* गेम कार्ड के अंदर की सजावट */
+    .game-card::before {
+      content: '';
+      position: absolute;
+      right: -10px; bottom: -10px;
+      font-size: 4.5rem;
+      opacity: 0.15;
+      font-weight: 900;
     }
+    #game-mine::before { content: '💣'; }
+    #game-wingo::before { content: '🎰'; }
+    #game-slot::before { content: '👑'; }
+    #game-head-tail::before { content: '🪙'; }
 
-    /* Locked Game Styles */
+    .game-name { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+    .game-status { font-size: 0.7rem; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 10px; margin-top: 5px; }
+
+    /* 🔒 लॉक गेम ओवरले स्टाइल */
     .game-card.locked {
-      opacity: 0.4;
+      filter: grayscale(0.9);
+      opacity: 0.5;
       cursor: not-allowed;
-      border-color: #333;
     }
-
     .game-card.locked::after {
       content: '🔒 LOCKED';
       position: absolute;
-      bottom: 10px;
-      font-size: 0.75rem;
-      color: var(--error-color);
-      font-weight: bold;
-      letter-spacing: 1px;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex; justify-content: center; align-items: center;
+      font-size: 0.9rem; font-weight: bold; color: #ff3b30; letter-spacing: 1px;
     }
 
-    .game-icon { font-size: 2rem; margin-bottom: 10px; }
-    .game-name { font-size: 1rem; font-weight: bold; text-transform: uppercase; }
-
-    /* Profile Section Styles */
+    /* 👤 प्रोफाइल डिजाइन */
     .profile-card {
       background: var(--card-bg);
       border-radius: 16px;
-      padding: 25px;
-      border: 1px solid #2c2c3e;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
-
-    .profile-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid #2c2c3e;
-    }
-
+    .profile-header-box { text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+    .profile-avatar { width: 65px; height: 65px; background: var(--primary-color); color: #000; font-size: 2rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; margin-bottom: 10px; box-shadow: 0 0 15px var(--primary-glow); }
+    
+    .profile-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.95rem; }
     .profile-item span:first-child { color: var(--text-muted); }
-    .profile-item span:last-child { color: #fff; font-weight: bold; }
+    .profile-item span:last-child { color: #fff; font-weight: 600; }
 
-    .profile-actions {
-      display: flex;
-      gap: 15px;
-      margin-top: 25px;
-    }
+    .profile-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .action-btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; text-transform: uppercase; text-decoration: none; text-align: center; display: inline-block; }
+    .btn-recharge { background: var(--primary-color); color: #000; box-shadow: 0 4px 12px var(--primary-glow); }
+    .btn-withdraw { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+    
+    .logout-btn { background: #ff3b30; color: #fff; border: none; width: 100%; margin-top: 20px; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
 
-    .action-btn {
-      flex: 1;
-      padding: 14px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      text-transform: uppercase;
-      text-decoration: none;
-      text-align: center;
-      transition: 0.3s;
-    }
-
-    .btn-recharge { background: var(--primary-color); color: #0f0f1a; border: none; }
-    .btn-recharge:hover { box-shadow: 0 0 15px rgba(0,255,204,0.4); }
-
-    .btn-withdraw { background: transparent; color: #fff; border: 1px solid var(--text-muted); }
-    .btn-withdraw:hover { border-color: var(--primary-color); color: var(--primary-color); }
-
-    .logout-btn {
-      background: #ff4d4d; color: #fff; border: none; width: 100%;
-      margin-top: 20px; padding: 12px; border-radius: 8px; font-weight: bold;
-      cursor: pointer; text-transform: uppercase; transition: 0.3s;
-    }
-    .logout-btn:hover { box-shadow: 0 0 15px rgba(255,77,77,0.4); }
-
-    /* Bottom Navigation Bar */
+    /* बॉटम नेविगेशन (मोबाइल स्टाइल) */
     .bottom-nav {
-      position: fixed;
+      position: absolute;
       bottom: 0; left: 0; right: 0;
-      background: var(--card-bg);
-      border-top: 1px solid #2c2c3e;
+      background: #11111a;
+      border-top: 1px solid rgba(255,255,255,0.05);
       display: flex;
       justify-content: space-around;
-      padding: 10px 0;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+      padding: 12px 0;
       z-index: 100;
     }
-
     .nav-item {
       background: transparent; border: none; color: var(--text-muted);
-      font-size: 0.9rem; font-weight: bold; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      transition: 0.3s;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
     }
+    .nav-item.active { color: var(--primary-color); }
+    .nav-icon { font-size: 1.3rem; }
 
-    .nav-item.active {
-      color: var(--primary-color);
-      text-shadow: 0 0 8px rgba(0,255,204,0.4);
-    }
-
-    .nav-icon { font-size: 1.4rem; }
-
-    /* Blocked Screen */
+    /* 🚫 फुल स्क्रीन ब्लॉक स्क्रीन */
     #block-screen {
       position: fixed; top:0; left:0; width:100vw; height:100vh;
-      background: #000; color: var(--error-color); z-index: 9999;
+      background: #09090e; color: var(--error-color); z-index: 99999;
       display: none; flex-direction: column; justify-content: center;
-      align-items: center; text-align: center; padding: 20px;
-      box-sizing: border-box;
+      align-items: center; text-align: center; padding: 25px;
     }
-    #block-screen h1 { font-size: 3rem; margin-bottom: 10px; }
-    #block-screen p { color: #fff; font-size: 1.2rem; }
   </style>
 </head>
 <body>
 
-  <!-- Account Blocked Screen Overlap -->
-  <div id="block-screen">
-    <h1>🚫 ACCESS DENIED</h1>
-    <p>Aapki ID Block/Lock kar di gayi hai.</p>
-    <p style="font-size: 0.9rem; color: #777;">Kripya Admin se sampark karein.</p>
-  </div>
-
-  <!-- Header -->
-  <header>
-    <div class="user-info">
-      <h3>my77play</h3>
-    </div>
-    <div class="wallet-balance" style="font-size: 1.3rem;">₹<span id="header-balance">0.00</span></div>
-  </header>
-
-  <div class="container">
+  <!-- मोबाइल स्क्रीन रैपर -->
+  <div class="app-wrapper">
     
-    <!-- ================= HOME SECTION ================= -->
-    <div id="home-section" class="page-section active">
-      <!-- Wallet Banner -->
-      <div class="wallet-card">
-        <div class="wallet-title">Main Wallet Balance</div>
-        <div class="wallet-balance">₹<span id="main-balance">0.00</span></div>
-      </div>
-
-      <!-- Games Grid -->
-      <div class="section-title">Live Games</div>
-      <div class="games-grid">
-        
-        <a href="mine_game.html" id="game-mine" class="game-card">
-          <div class="game-icon">💣</div>
-          <div class="game-name">Mines Game</div>
-        </a>
-
-        <a href="wingo_game.html" id="game-wingo" class="game-card">
-          <div class="game-icon">🎨</div>
-          <div class="game-name">Wingo Game</div>
-        </a>
-
-        <a href="casino_slot.html" id="game-slot" class="game-card">
-          <div class="game-icon">🎰</div>
-          <div class="game-name">Casino Slot</div>
-        </a>
-
-        <a href="head_tail.html" id="game-head-tail" class="game-card">
-          <div class="game-icon">🪙</div>
-          <div class="game-name">Head & Tail</div>
-        </a>
-
-      </div>
+    <!-- ब्लॉक स्क्रीन ओवरले -->
+    <div id="block-screen">
+      <span style="font-size: 4rem;">🚫</span>
+      <h1 style="margin: 15px 0 5px 0; font-size: 1.8rem; font-weight: 900;">ACCOUNT LOCKED</h1>
+      <p style="color: #fff; margin: 0 0 20px 0; font-size: 1rem;">Aapki ID temporary block kar di gayi hai.</p>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Assistance ke liye support team se baat karein.</p>
     </div>
 
-    <!-- ================= PROFILE SECTION ================= -->
-    <div id="profile-section" class="page-section">
-      <div class="section-title">My Profile</div>
-      <div class="profile-card">
-        <div class="profile-item">
-          <span>Player Name</span>
-          <span id="prof-name">------</span>
-        </div>
-        <div class="profile-item">
-          <span>Player ID</span>
-          <span id="prof-id">------</span>
-        </div>
-        <div class="profile-item">
-          <span>Mobile Number</span>
-          <span id="prof-mobile">------</span>
-        </div>
-        <div class="profile-item">
-          <span>Available Balance</span>
-          <span style="color: var(--primary-color);" id="prof-balance">₹0.00</span>
+    <!-- हेडर -->
+    <header>
+      <div class="brand-title">MY77PLAY</div>
+      <div class="top-user-id" id="header-player-id">ID: Loading...</div>
+    </header>
+
+    <div class="main-content">
+      
+      <!-- ================= HOME SECTION ================= -->
+      <div id="home-section" class="page-section active">
+        <!-- लाइव वॉलेट -->
+        <div class="wallet-card">
+          <div class="wallet-title">Live Balance</div>
+          <div class="wallet-balance">₹<span id="main-balance">0.00</span></div>
         </div>
 
-        <!-- Recharge & Withdrawal Buttons -->
-        <div class="profile-actions">
-          <a href="recharge.html" class="action-btn btn-recharge">Recharge</a>
-          <a href="withdrawal.html" class="action-btn btn-withdraw">Withdraw</a>
-        </div>
+        <!-- असली गेम्स ग्रिड -->
+        <div class="section-title">Popular Games</div>
+        <div class="games-grid">
+          
+          <a href="mine_game.html" id="game-mine" class="game-card">
+            <p class="game-name">Mines</p>
+            <span class="game-status">Active Play</span>
+          </a>
 
-        <button class="logout-btn" onclick="logout()">Log Out</button>
-      </div>
-    </div>
+          <a href="wingo_game.html" id="game-wingo" class="game-card">
+            <p class="game-name">WinGo</p>
+            <span class="game-status">1 Min / 3 Min</span>
+          </a>
 
-  </div>
-
-  <!-- Bottom Navigation Bar -->
-  <div class="bottom-nav">
-    <button class="nav-item active" id="nav-home-btn" onclick="switchTab('home')">
-      <span class="nav-icon">🏠</span>
-      <span>Home</span>
-    </button>
-    <button class="nav-item" id="nav-profile-btn" onclick="switchTab('profile')">
-      <span class="nav-icon">👤</span>
-      <span>Profile</span>
-    </button>
-  </div>
-
-  <script>
-    // Supabase Credentials
-    const supabaseUrl = 'https://supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
-    
-    let supabaseClient = null;
-
-    // Login Verification
-    const userMobile = localStorage.getItem('my77play_user');
-    if (!userMobile) {
-      window.location.href = "index.html";
-    }
-
-    function initSupabase() {
+          <a href="casino_slot.html" id="game-slot" class="game-card">
