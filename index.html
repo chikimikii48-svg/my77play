@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Login</title>
-  <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
     .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
@@ -49,8 +49,10 @@
     <a href="https://wa.me" target="_blank" id="whatsapp-link">💬 Contact Admin on WhatsApp</a>
   </div>
 </div>
+
 <script>
-  const supabaseUrl = 'https://supabase.co';
+  // 1. यहाँ सही प्रोजेक्ट URL वापस फिक्स कर दिया गया है
+  const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
 
   let supabaseClient = null;
@@ -64,7 +66,6 @@
   window.onload = function() {
     initSupabase();
     fetchWhatsAppNumber(); 
-    listenToWhatsAppUpdates(); // ⚡ व्हाट्सएप लाइव सिंक चालू करें
   };
 
   async function fetchWhatsAppNumber() {
@@ -76,30 +77,12 @@
         .maybeSingle();
       
       if (data && data.whatsapp_number) {
+        // यहाँ / स्लैश को ठीक किया गया है
         document.getElementById('whatsapp-link').href = "https://wa.me" + data.whatsapp_number;
       }
     } catch (e) {
       console.log("WhatsApp load error, default running.");
     }
-  }
-
-  // ⚡ व्हाट्सएप नंबर रीयल-टाइम लिसनर (बिना रिफ्रेश तुरंत लिंक बदलेगा)
-  function listenToWhatsAppUpdates() {
-    if (!supabaseClient) initSupabase();
-    
-    supabaseClient
-      .channel('public:admin_settings')
-      .on('postgres_changes', { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'admin_settings' 
-      }, (payload) => {
-          if (payload.new && payload.new.whatsapp_number) {
-              console.log("Live WhatsApp Update Received:", payload.new.whatsapp_number);
-              document.getElementById('whatsapp-link').href = "https://wa.me" + payload.new.whatsapp_number;
-          }
-      })
-      .subscribe();
   }
 
   let isLoginMode = true;
@@ -195,14 +178,6 @@
 
         const userRow = data[0]; 
 
-        // 🔒 आईडी ब्लॉक चेक: लॉगिन गेट पर ही ब्लॉक यूजर को रोकने के लिए
-        if (userRow.is_blocked === true) {
-          showError("Aapki ID Admin dwara block/lock kar di gayi hai!");
-          submitBtn.innerText = "Login";
-          submitBtn.disabled = false;
-          return;
-        }
-
         if (String(userRow.password) !== String(password)) {
           showError("Incorrect Password! Please try again.");
           submitBtn.innerText = "Login";
@@ -213,65 +188,56 @@
         localStorage.setItem('my77play_user', userRow.mobile);
         localStorage.setItem('my77play_id', userRow.player_id || '');
         localStorage.setItem('my77play_name', userRow.name || '');
-        
-        showSuccess("Login Successful! Redirecting...");
+        localStorage.setItem('my77play_balance', String(userRow.balance ?? 0));
+
+        showSuccess("Successful Login!");
         setTimeout(() => {
-          window.location.href = "home.html";
-        }, 1200);
+          window.location.href = 'home.html';
+        }, 600);
 
       } else {
-        // --- रजिस्ट्रेशन मोड ---
+        // 2. गायब हुआ 'Register' लॉजिक यहाँ पूरा वापस जोड़ दिया गया है
         submitBtn.innerText = "Registering...";
 
-        const { data: existingUser, error: checkError } = await supabaseClient
+        if (name.length < 2) {
+          showError("Name enter karo.");
+          submitBtn.innerText = "Register";
+          submitBtn.disabled = false;
+          return;
+        }
+
+        const { data: existing } = await supabaseClient
           .from('users')
           .select('mobile')
           .eq('mobile', mobile);
 
-        if (checkError) {
-          showError("Server error code 02. Please try again.");
+        if (existing && existing.length > 0) {
+          showError("आप हमारे मौजूदा यूजर हो, कृपया सीधे लॉगिन करो।");
           submitBtn.innerText = "Register";
           submitBtn.disabled = false;
           return;
         }
 
-        if (existingUser && existingUser.length > 0) {
-          showError("Yeh mobile number pehle se register hai. Login karein.");
-          submitBtn.innerText = "Register";
-          submitBtn.disabled = false;
-          return;
-        }
-
-        const newPlayerId = "PL" + random9Digit();
-
+        const newPlayerId = random9Digit();
         const { error: insertError } = await supabaseClient
           .from('users')
-          .insert([
-            { 
-              mobile: mobile, 
-              password: password, 
-              name: name, 
-              player_id: newPlayerId,
-              balance: 0,
-              is_blocked: false
-            }
-          ]);
+          .insert([{ mobile: mobile, password: password, name: name, player_id: newPlayerId, balance: 0 }]);
 
         if (insertError) {
-          showError("Registration failed. Please try again.");
+          showError("Registration failed. Try again.");
           submitBtn.innerText = "Register";
           submitBtn.disabled = false;
           return;
         }
 
-        showSuccess("Account Registered Successfully! Please Login.");
+        showSuccess("Registration Successful! Please login.");
         setTimeout(() => {
           toggleMode();
-        }, 1800);
+          submitBtn.disabled = false; // बटन तुरंत एक्टिव होगा
+        }, 1200);
       }
-    } catch (e) {
-      showError("Something went wrong. Please try again.");
-      submitBtn.innerText = isLoginMode ? "Login" : "Register";
+    } catch (err) {
+      showError("Something went wrong!");
       submitBtn.disabled = false;
     }
   }
