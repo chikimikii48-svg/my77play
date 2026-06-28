@@ -193,7 +193,7 @@
         const userRow = data[0]; 
 // 🔒 आईडी ब्लॉक चेक: अगर टेबल में true है तो लॉगिन यहीं रुक जाएगा
         if (userRow.is_blocked === true) {
-          showError("Aapki ID Admin dwara block/lock kar di gayi hai!");
+          showError("आपकी आईडी ब्लॉक है/Your Id is Blocked!");
           submitBtn.innerText = "Login";
           submitBtn.disabled = false;
           return;
