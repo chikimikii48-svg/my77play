@@ -34,7 +34,7 @@
       justify-content: center;
     }
 
-    /* 📱 मोबाइल फ्रेम कंटेनर */
+    /* 📱 मोबाइल फ्रेम */
     .app-wrapper {
       width: 100%;
       max-width: 420px;
@@ -82,7 +82,7 @@
     .page-section { display: none; }
     .page-section.active { display: block; }
 
-    /* वॉलेट कार्ड स्टाइल */
+    /* वॉलेट कार्ड */
     .wallet-card {
       background: linear-gradient(135deg, #1e1e30 0%, #11111a 100%);
       border: 1px solid rgba(0, 255, 204, 0.2);
@@ -108,7 +108,7 @@
       text-shadow: 0 0 15px var(--primary-glow);
     }
 
-    /* गेम्स ग्रिड */
+    /* गेम्स ग्रिड टाइटल */
     .section-title {
       font-size: 1.1rem;
       font-weight: 700;
@@ -133,7 +133,7 @@
       gap: 12px;
     }
 
-    /* गेम कार्ड्स */
+    /* 4 असली गेम्स कार्ड */
     .game-card {
       position: relative;
       border-radius: 14px;
@@ -172,7 +172,7 @@
     .game-name { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
     .game-status { font-size: 0.7rem; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 10px; margin-top: 5px; }
 
-    /* 🔒 लॉक गेम ओवरले */
+    /* 🔒 लॉक गेम ओवरले स्टाइल */
     .game-card.locked {
       filter: grayscale(0.9);
       opacity: 0.5;
@@ -208,7 +208,7 @@
     
     .logout-btn { background: #ff3b30; color: #fff; border: none; width: 100%; margin-top: 20px; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
 
-    /* बॉटम नेविगेशन */
+    /* बॉटम होम और प्रोफाइल बटन */
     .bottom-nav {
       position: absolute;
       bottom: 0; left: 0; right: 0;
@@ -238,7 +238,6 @@
 </head>
 <body>
 
-  <!-- मोबाइल स्क्रीन रैपर -->
   <div class="app-wrapper">
     
     <!-- ब्लॉक स्क्रीन ओवरले -->
@@ -355,7 +354,7 @@
             // UI को फ्रेश डेटा से अपडेट करें
             updateUI(userData);
             
-            // ⚡ रीयल-टाइम लिसनर चालू करें (मोबाइल नंबर और प्लेयर आईडी दोनों पर लॉक)
+            // ⚡ रीयल-टाइम लिसनर चालू करें
             listenToLiveUpdates(userData.mobile, userData.player_id);
             
             // localStorage को नए ताज़ा डेटा से अपडेट करें
@@ -415,11 +414,10 @@
       }
     }
 
-    // ⚡ मोबाइल नंबर और प्लेयर आईडी आधारित डुअल रीयल-टाइम लिसनर (Instant Update)
+    // ⚡ एडवांस्ड रीयल-टाइम लिसनर (RLS डिसेबल होने पर भी 100% काम करेगा)
     function listenToLiveUpdates(mobileNum, playerId) {
       if (!supabaseClient) initSupabase();
 
-      // नंबर और स्ट्रिंग दोनों फ़ॉर्मेट के लिए सुरक्षा व्यवस्था
       const numMobile = Number(mobileNum);
 
       supabaseClient
@@ -427,20 +425,14 @@
         .on('postgres_changes', { 
             event: 'UPDATE', 
             schema: 'public', 
-            table: 'users',
-            filter: `mobile=eq.${numMobile}` 
+            table: 'users'
+            // बिना फ़िल्टर के टेबल ब्रॉडकास्ट सुना ताकि RLS ऑफ होने पर भी डेटा आए
         }, (payload) => {
-            console.log('Live update captured via mobile:', payload.new);
-            updateUI(payload.new);
-        })
-        .on('postgres_changes', { 
-            event: 'UPDATE', 
-            schema: 'public', 
-            table: 'users',
-            filter: `player_id=eq.${playerId}` 
-        }, (payload) => {
-            console.log('Live update captured via player_id:', payload.new);
-            updateUI(payload.new);
+            // कोड के अंदर ही चेक किया कि बदला हुआ डेटा इसी यूजर का है या नहीं
+            if (Number(payload.new.mobile) === numMobile || payload.new.player_id === playerId) {
+                console.log('Live update received for current user:', payload.new);
+                updateUI(payload.new);
+            }
         })
         .subscribe();
     }
