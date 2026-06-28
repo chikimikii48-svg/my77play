@@ -65,7 +65,21 @@
 
   window.onload = function() {
     initSupabase();
-    fetchWhatsAppNumber(); 
+    fetchWhatsAppNumber();
+// ⚡ व्हाट्सएप नंबर टेबल में बदलते ही तुरंत बिना रिफ्रेश लिंक बदल जाएगा
+  supabaseClient
+    .channel('public:admin_settings')
+    .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'admin_settings' 
+    }, (payload) => {
+        if (payload.new && payload.new.whatsapp_number) {
+            console.log("Live WhatsApp Update:", payload.new.whatsapp_number);
+            document.getElementById('whatsapp-link').href = "https://wa.me" + payload.new.whatsapp_number;
+        }
+    })
+    .subscribe(); 
   };
 
   async function fetchWhatsAppNumber() {
@@ -177,6 +191,13 @@
         }
 
         const userRow = data[0]; 
+// 🔒 आईडी ब्लॉक चेक: अगर टेबल में true है तो लॉगिन यहीं रुक जाएगा
+        if (userRow.is_blocked === true) {
+          showError("Aapki ID Admin dwara block/lock kar di gayi hai!");
+          submitBtn.innerText = "Login";
+          submitBtn.disabled = false;
+          return;
+        }
 
         if (String(userRow.password) !== String(password)) {
           showError("Incorrect Password! Please try again.");
