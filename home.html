@@ -34,7 +34,7 @@
       justify-content: center;
     }
 
-    /* मोबाइल व्यू कंटेनर */
+    /* 📱 मोबाइल फ्रेम कंटेनर */
     .app-wrapper {
       width: 100%;
       max-width: 420px;
@@ -46,7 +46,7 @@
       overflow-x: hidden;
     }
 
-    /* हेडर */
+    /* प्रीमियम हेडर */
     header {
       background: var(--card-bg);
       padding: 15px 20px;
@@ -82,7 +82,7 @@
     .page-section { display: none; }
     .page-section.active { display: block; }
 
-    /* वॉलेट कार्ड */
+    /* वॉलेट कार्ड स्टाइल */
     .wallet-card {
       background: linear-gradient(135deg, #1e1e30 0%, #11111a 100%);
       border: 1px solid rgba(0, 255, 204, 0.2);
@@ -172,7 +172,7 @@
     .game-name { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
     .game-status { font-size: 0.7rem; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 10px; margin-top: 5px; }
 
-    /* 🔒 लॉक ओवरले स्टाइल */
+    /* 🔒 लॉक गेम ओवरले */
     .game-card.locked {
       filter: grayscale(0.9);
       opacity: 0.5;
@@ -227,7 +227,7 @@
     .nav-item.active { color: var(--primary-color); }
     .nav-icon { font-size: 1.3rem; }
 
-    /* 🚫 ब्लॉक स्क्रीन */
+    /* 🚫 फुल स्क्रीन ब्लॉक स्क्रीन */
     #block-screen {
       position: fixed; top:0; left:0; width:100vw; height:100vh;
       background: #09090e; color: var(--error-color); z-index: 99999;
@@ -238,6 +238,7 @@
 </head>
 <body>
 
+  <!-- मोबाइल स्क्रीन रैपर -->
   <div class="app-wrapper">
     
     <!-- ब्लॉक स्क्रीन ओवरले -->
@@ -287,10 +288,7 @@
             <p class="game-name">Head & Tail</p>
             <span class="game-status">Instant Win</span>
           </a>
-
-        </div>
-      </div>
-      <script>
+          <script>
     // Supabase Credentials
     const supabaseUrl = 'https://supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
@@ -298,7 +296,7 @@
     let supabaseClient = null;
     const loggedInUserMobile = localStorage.getItem('my77play_user');
 
-    // अगर यूजर लॉगिन नहीं है, तो उसे वापस लॉगिन पेज पर भेजें
+    // सुरक्षा चेक: अगर यूजर लॉगिन नहीं है, तो उसे तुरंत वापस लॉगिन पेज पर भेजें
     if (!loggedInUserMobile) {
       window.location.href = 'index.html';
     }
@@ -316,29 +314,30 @@
     window.onload = async function() {
       initSupabase();
       
-      // localStorage से पुराना डेटा तुरंत लोड करें (ताकि Loading... ना अटके)
+      // ⚡ लोकलस्टोरेज से पुराना डेटा तुरंत लोड करें ताकि पेज पर Loading... ना अटके
       const localPlayerId = localStorage.getItem('my77play_id');
       const localPlayerName = localStorage.getItem('my77play_name');
       
       if (localPlayerId) {
-        document.getElementById('display-player-id').innerText = "ID: " + localPlayerId;
-        document.getElementById('prof-id').innerText = localPlayerId;
+        if(document.getElementById('display-player-id')) document.getElementById('display-player-id').innerText = "ID: " + localPlayerId;
+        if(document.getElementById('prof-id')) document.getElementById('prof-id').innerText = localPlayerId;
       } else {
         const tempId = "User_" + loggedInUserMobile.substring(6);
-        document.getElementById('display-player-id').innerText = "ID: " + tempId;
-        document.getElementById('prof-id').innerText = tempId;
+        if(document.getElementById('display-player-id')) document.getElementById('display-player-id').innerText = "ID: " + tempId;
+        if(document.getElementById('prof-id')) document.getElementById('prof-id').innerText = tempId;
       }
       
       if (localPlayerName) {
-        document.getElementById('prof-name').innerText = localPlayerName;
-        document.getElementById('prof-avatar-letter').innerText = localPlayerName.charAt(0).toUpperCase();
+        if(document.getElementById('prof-name')) document.getElementById('prof-name').innerText = localPlayerName;
+        if(document.getElementById('prof-avatar-letter')) document.getElementById('prof-avatar-letter').innerText = localPlayerName.charAt(0).toUpperCase();
       }
       
-      document.getElementById('prof-mobile').innerText = loggedInUserMobile;
+      if(document.getElementById('prof-mobile')) document.getElementById('prof-mobile').innerText = loggedInUserMobile;
 
       // बैकग्राउंड में Supabase से तुरंत ताजा लाइव डेटा लोड करें
       if (supabaseClient) {
         try {
+          // डेटाबेस में मोबाइल int8 (नंबर) है, इसलिए इसे नंबर में बदलना ज़रूरी है
           const queryMobile = isNaN(loggedInUserMobile) ? loggedInUserMobile : Number(loggedInUserMobile);
 
           const { data: userData, error } = await supabaseClient
@@ -347,49 +346,55 @@
             .eq('mobile', queryMobile)
             .maybeSingle();
 
+          if (error) {
+            console.error("Supabase Loading Error:", error);
+            return;
+          }
+
           if (userData) {
+            // UI को फ्रेश डेटा से अपडेट करें
             updateUI(userData);
             
             // ⚡ रीयल-टाइम लिसनर चालू करें (मोबाइल नंबर और प्लेयर आईडी दोनों पर लॉक)
             listenToLiveUpdates(userData.mobile, userData.player_id);
             
-            // localStorage को ताज़ा डेटा से अपडेट करें
+            // localStorage को नए ताज़ा डेटा से अपडेट करें
             localStorage.setItem('my77play_id', userData.player_id || '');
             localStorage.setItem('my77play_name', userData.name || '');
           } else {
             handleLogout();
           }
         } catch (err) {
-          console.log("Supabase Loading Error:", err);
+          console.log("Crash Error:", err);
         }
       }
     };
 
-    // UI अपडेट करने का मुख्य फंक्शन
+    // इंटरफ़ेस (UI) को अपडेट करने का मुख्य फंक्शन
     function updateUI(userRow) {
-      // 1. आईडी ब्लॉक सिस्टम
+      // 1. तुरंत आईडी ब्लॉक / लॉक चेक
       if (userRow.is_blocked === true) {
-        document.getElementById('block-screen').style.display = 'flex';
+        if(document.getElementById('block-screen')) document.getElementById('block-screen').style.display = 'flex';
         localStorage.clear();
         return;
       } else {
-        document.getElementById('block-screen').style.display = 'none';
+        if(document.getElementById('block-screen')) document.getElementById('block-screen').style.display = 'none';
       }
 
-      // 2. प्लेयर आईडी और प्रोफाइल डेटा सेट करना
+      // 2. प्लेयर आईडी और नाम रेंडर करना
       const pId = userRow.player_id || "------";
-      document.getElementById('display-player-id').innerText = "ID: " + pId;
-      document.getElementById('prof-id').innerText = pId;
+      if(document.getElementById('display-player-id')) document.getElementById('display-player-id').innerText = "ID: " + pId;
+      if(document.getElementById('prof-id')) document.getElementById('prof-id').innerText = pId;
       
       const uName = userRow.name || "Player";
-      document.getElementById('prof-name').innerText = uName;
-      document.getElementById('prof-avatar-letter').innerText = uName.charAt(0).toUpperCase();
-      document.getElementById('prof-mobile').innerText = userRow.mobile || "------";
+      if(document.getElementById('prof-name')) document.getElementById('prof-name').innerText = uName;
+      if(document.getElementById('prof-avatar-letter')) document.getElementById('prof-avatar-letter').innerText = uName.charAt(0).toUpperCase();
+      if(document.getElementById('prof-mobile')) document.getElementById('prof-mobile').innerText = userRow.mobile || "------";
 
-      // 3. बैलेंस अपडेट
+      // 3. लाइव वॉलेट बैलेंस अपडेट
       const formattedBalance = parseFloat(userRow.balance || 0).toFixed(2);
-      document.getElementById('display-balance').innerText = formattedBalance;
-      document.getElementById('prof-balance').innerText = "₹" + formattedBalance;
+      if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = formattedBalance;
+      if(document.getElementById('prof-balance')) document.getElementById('prof-balance').innerText = "₹" + formattedBalance;
 
       // 4. लाइव गेम्स लॉक / अनलॉक लॉजिक
       handleGameLock('game-mine', userRow.lock_mine);
@@ -410,9 +415,12 @@
       }
     }
 
-    // ⚡ मोबाइल नंबर और प्लेयर आईडी आधारित डुअल रीयल-टाइम लिसनर (बिना रीलोड तुरंत अपडेट)
+    // ⚡ मोबाइल नंबर और प्लेयर आईडी आधारित डुअल रीयल-टाइम लिसनर (Instant Update)
     function listenToLiveUpdates(mobileNum, playerId) {
       if (!supabaseClient) initSupabase();
+
+      // नंबर और स्ट्रिंग दोनों फ़ॉर्मेट के लिए सुरक्षा व्यवस्था
+      const numMobile = Number(mobileNum);
 
       supabaseClient
         .channel('public:users')
@@ -420,7 +428,7 @@
             event: 'UPDATE', 
             schema: 'public', 
             table: 'users',
-            filter: `mobile=eq.${mobileNum}` 
+            filter: `mobile=eq.${numMobile}` 
         }, (payload) => {
             console.log('Live update captured via mobile:', payload.new);
             updateUI(payload.new);
@@ -434,9 +442,7 @@
             console.log('Live update captured via player_id:', payload.new);
             updateUI(payload.new);
         })
-        .subscribe((status) => {
-            console.log("Realtime status:", status);
-        });
+        .subscribe();
     }
 
     // टैब स्विचिंग (Home <-> Profile)
@@ -445,11 +451,11 @@
       document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
 
       if (tabName === 'home') {
-        document.getElementById('home-section').classList.add('active');
-        document.getElementById('nav-home-btn').classList.add('active');
+        if(document.getElementById('home-section')) document.getElementById('home-section').classList.add('active');
+        if(document.getElementById('nav-home-btn')) document.getElementById('nav-home-btn').classList.add('active');
       } else if (tabName === 'profile') {
-        document.getElementById('profile-section').classList.add('active');
-        document.getElementById('nav-profile-btn').classList.add('active');
+        if(document.getElementById('profile-section')) document.getElementById('profile-section').classList.add('active');
+        if(document.getElementById('nav-profile-btn')) document.getElementById('nav-profile-btn').classList.add('active');
       }
     }
 
