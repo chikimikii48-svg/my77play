@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - VIP Super Admin Center</title>
-  
-  <!-- Supabase Client Script -->
-  <script src="https://jsdelivr.net"></script>
+  <!-- 🛡️ सुरक्षा नियम (CSP) ताकि सुपाबेस सर्वर ब्लॉक न हो -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net https://unpkg.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: blob: https://*.supabase.co;">
+
+  <!-- ⚡ सुपाबेस के दोनों असली और पूरे सर्वर रास्ते (Fallback) -->
+  <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
   <script src="https://unpkg.com"></script>
+  
   <style>
     :root {
       --bg-color: #030308;
