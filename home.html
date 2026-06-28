@@ -340,7 +340,7 @@
     window.onload = async function() {
       initSupabase();
       
-      // तुरंत लोकल स्टोरेज से पुराना डेटा स्क्रीन पर सजाएँ ताकि लोडिंग ना दिखे
+      // तुरंत लोकल स्टोरेज से पुराना डेटा स्क्रीन पर सजाएँ ताकि लोडिंग ना दिखे (सुपरफास्ट लोडिंग)
       const localPlayerId = localStorage.getItem('my77play_id');
       const localPlayerName = localStorage.getItem('my77play_name');
       const localBalance = localStorage.getItem('my77play_balance') || '0.00';
@@ -375,7 +375,7 @@
 
           if (userData) {
             updateUI(userData);
-            // ⚡ ताज़ा डेटा के साथ लाइव रीयलटाइम लिसनर चालू करें
+            // ⚡ रीयलटाइम लिसनर चालू करें
             listenToLiveUpdates(userData.mobile, userData.player_id);
             
             localStorage.setItem('my77play_id', userData.player_id || '');
@@ -413,13 +413,14 @@
       if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = formattedBalance;
       if(document.getElementById('prof-balance')) document.getElementById('prof-balance').innerText = "₹" + formattedBalance;
 
-      // 🔒 लाइव गेम्स लॉक / अनलॉक लॉजिक (100% वर्किंग)
+      // 🔒 लाइव गेम्स लॉक / अनलॉक लॉजिक (100% फिक्स वर्किंग लाइन)
       handleGameLock('game-mine', userRow.lock_mine);
       handleGameLock('game-wingo', userRow.lock_wingo);
       handleGameLock('game-slot', userRow.lock_slot);
       handleGameLock('game-head-tail', userRow.lock_head_tail);
     }
 
+    // 🔒 गेम्स लॉक/अनलॉक करने का असली स्वतंत्र हैंडलर
     function handleGameLock(elementId, isLocked) {
       const el = document.getElementById(elementId);
       if (!el) return;
@@ -438,7 +439,7 @@
       const numMobile = Number(mobileNum);
 
       supabaseClient
-        .channel('realtime-casino-sync')
+        .channel('room1') // 👈 'room1' यूनिवर्सल चैनल नाम ताकि पुराना कोई भी कैश रास्ता न रोके
         .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
             console.log('Live Broadcast Received:', payload);
             const changedRow = payload.new || payload.old;
