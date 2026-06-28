@@ -49,27 +49,47 @@
     <a href="https://wa.me" target="_blank" id="whatsapp-link">💬 Contact Admin on WhatsApp</a>
   </div>
 </div>
+
 <script>
-  const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
+  const supabaseUrl = 'https://supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
 
   let supabaseClient = null;
 
+  // मजबूत इनिशियलाइज़ेशन फंक्शन जो सीडीएन लाइब्रेरी लोड होने का इंतज़ार करेगा
   function initSupabase() {
     if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
       supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+      return true;
     }
+    return false;
   }
 
   window.onload = function() {
-    initSupabase();
-    fetchWhatsAppNumber(); 
-    listenToWhatsAppUpdates(); // ⚡ व्हाट्सएप लाइव सिंक शुरू करें
+    // अगर पहली बार में लोड न हो तो बैकग्राउंड में री-ट्राई लॉजिक चलाएं
+    if (!initSupabase()) {
+      let checkCount = 0;
+      let interval = setInterval(() => {
+        checkCount++;
+        if (initSupabase() || checkCount > 10) {
+          clearInterval(interval);
+          if (supabaseClient) {
+            fetchWhatsAppNumber(); 
+            listenToWhatsAppUpdates();
+          }
+        }
+      }, 500);
+    } else {
+      fetchWhatsAppNumber(); 
+      listenToWhatsAppUpdates();
+    }
   };
 
   async function fetchWhatsAppNumber() {
     try {
       if(!supabaseClient) initSupabase();
+      if(!supabaseClient) return;
+      
       const { data, error } = await supabaseClient
         .from('admin_settings')
         .select('whatsapp_number')
@@ -83,9 +103,9 @@
     }
   }
 
-  // ⚡ व्हाट्सएप रीयल-टाइम लिसनर (बिना रिफ्रेश तुरंत लिंक बदलेगा)
   function listenToWhatsAppUpdates() {
     if (!supabaseClient) initSupabase();
+    if (!supabaseClient) return;
     
     supabaseClient
       .channel('public:admin_settings')
@@ -155,9 +175,10 @@
     errorBox.style.display = 'none';
     successBox.style.display = 'none';
     
+    // सबमिट बटन दबाते ही क्लाइंट को दोबारा चेक और फोर्स-इनिशियलाइज़ करें
     if (!supabaseClient) initSupabase();
     if (!supabaseClient) {
-      showError("Connection down. Please refresh the page.");
+      showError("Connection down. Please wait 2 seconds and click again.");
       return;
     }
 
@@ -198,7 +219,6 @@
 
         const userRow = data[0]; 
 
-        // 🔒 आईडी ब्लॉक चेक सिस्टम: ब्लॉक होने पर लॉगिन रोकेगा
         if (userRow.is_blocked === true) {
           showError("Aapki ID Admin dwara block/lock kar di gayi hai!");
           submitBtn.innerText = "Login";
@@ -219,65 +239,3 @@
         
         showSuccess("Login Successful! Redirecting...");
         setTimeout(() => {
-          window.location.href = "home.html";
-        }, 1200);
-
-      } else {
-        // --- नया रजिस्ट्रेशन लॉजिक ---
-        submitBtn.innerText = "Registering...";
-
-        const { data: existingUser, error: checkError } = await supabaseClient
-          .from('users')
-          .select('mobile')
-          .eq('mobile', queryMobile);
-
-        if (checkError) {
-          showError("Server error code 02. Please try again.");
-          submitBtn.innerText = "Register";
-          submitBtn.disabled = false;
-          return;
-        }
-
-        if (existingUser && existingUser.length > 0) {
-          showError("Yeh mobile number pehle se register hai. Login karein.");
-          submitBtn.innerText = "Register";
-          submitBtn.disabled = false;
-          return;
-        }
-
-        const newPlayerId = "PL" + random9Digit();
-
-        const { error: insertError } = await supabaseClient
-          .from('users')
-          .insert([
-            { 
-              mobile: queryMobile, 
-              password: password, 
-              name: name, 
-              player_id: newPlayerId,
-              balance: 0,
-              is_blocked: false
-            }
-          ]);
-
-        if (insertError) {
-          showError("Registration failed. Data write error.");
-          submitBtn.innerText = "Register";
-          submitBtn.disabled = false;
-          return;
-        }
-
-        showSuccess("Account Registered Successfully! Switching to login...");
-        setTimeout(() => {
-          toggleMode();
-        }, 1800);
-      }
-    } catch (e) {
-      showError("Something went wrong. Please try again.");
-      submitBtn.innerText = isLoginMode ? "Login" : "Register";
-      submitBtn.disabled = false;
-    }
-  }
-</script>
-</body>
-</html>
