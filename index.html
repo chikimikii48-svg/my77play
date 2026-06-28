@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>my77play - Login</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { background: #0f0f1a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #fff; }
     .container { background: #1c1c27; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); text-align: center; border: 1px solid #00ffcc; }
@@ -49,9 +49,8 @@
     <a href="https://wa.me" target="_blank" id="whatsapp-link">💬 Contact Admin on WhatsApp</a>
   </div>
 </div>
-
 <script>
-  const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
+  const supabaseUrl = 'https://supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
 
   let supabaseClient = null;
@@ -65,6 +64,7 @@
   window.onload = function() {
     initSupabase();
     fetchWhatsAppNumber(); 
+    listenToWhatsAppUpdates(); // ⚡ व्हाट्सएप लाइव सिंक शुरू करें
   };
 
   async function fetchWhatsAppNumber() {
@@ -81,6 +81,25 @@
     } catch (e) {
       console.log("WhatsApp load error, default running.");
     }
+  }
+
+  // ⚡ व्हाट्सएप रीयल-टाइम लिसनर (बिना रिफ्रेश तुरंत लिंक बदलेगा)
+  function listenToWhatsAppUpdates() {
+    if (!supabaseClient) initSupabase();
+    
+    supabaseClient
+      .channel('public:admin_settings')
+      .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'admin_settings' 
+      }, (payload) => {
+          if (payload.new && payload.new.whatsapp_number) {
+              console.log("Live WhatsApp Update:", payload.new.whatsapp_number);
+              document.getElementById('whatsapp-link').href = "https://wa.me" + payload.new.whatsapp_number;
+          }
+      })
+      .subscribe();
   }
 
   let isLoginMode = true;
@@ -151,7 +170,6 @@
       return;
     }
 
-    // मोबाइल नंबर को int8 नंबर डेटा टाइप में बदलना ज़रूरी है ताकि डेटाबेस ढूँढ सके
     const queryMobile = Number(mobileInputVal);
     submitBtn.disabled = true;
 
@@ -180,7 +198,7 @@
 
         const userRow = data[0]; 
 
-        // 🔒 आईडी ब्लॉक चेक सिस्टम: सिर्फ लॉगिन गेट पर रोकने के लिए
+        // 🔒 आईडी ब्लॉक चेक सिस्टम: ब्लॉक होने पर लॉगिन रोकेगा
         if (userRow.is_blocked === true) {
           showError("Aapki ID Admin dwara block/lock kar di gayi hai!");
           submitBtn.innerText = "Login";
@@ -205,7 +223,7 @@
         }, 1200);
 
       } else {
-        // --- नया रजिस्ट्रेशन इंसर्ट लॉजिक ---
+        // --- नया रजिस्ट्रेशन लॉजिक ---
         submitBtn.innerText = "Registering...";
 
         const { data: existingUser, error: checkError } = await supabaseClient
@@ -241,3 +259,25 @@
               is_blocked: false
             }
           ]);
+
+        if (insertError) {
+          showError("Registration failed. Data write error.");
+          submitBtn.innerText = "Register";
+          submitBtn.disabled = false;
+          return;
+        }
+
+        showSuccess("Account Registered Successfully! Switching to login...");
+        setTimeout(() => {
+          toggleMode();
+        }, 1800);
+      }
+    } catch (e) {
+      showError("Something went wrong. Please try again.");
+      submitBtn.innerText = isLoginMode ? "Login" : "Register";
+      submitBtn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
