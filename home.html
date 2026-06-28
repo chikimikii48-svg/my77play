@@ -26,7 +26,49 @@
       display: flex;
       justify-content: center;
     }
+/* 📱 बॉटम नेविगेशन बार और वीआईपी प्रोफाइल स्क्रीन का डिज़ाइन */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; width: 100%;
+    background: #11111f; display: flex; justify-content: space-around;
+    padding: 12px 0; border-top: 1px solid rgba(0, 255, 204, 0.15); z-index: 999;
+  }
+  .nav-btn {
+    background: none; border: none; color: #8e8e93; font-size: 0.9rem;
+    font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .nav-btn.active { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
 
+  .profile-screen-wrapper {
+    display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #0f0f1a; padding: 20px; padding-bottom: 80px; z-index: 998; overflow-y: auto;
+  }
+  .vip-avatar {
+    width: 80px; height: 80px; background: radial-gradient(#00ffcc, #004433);
+    border-radius: 50%; margin: 20px auto; display: flex; justify-content: center;
+    align-items: center; font-size: 2rem; font-weight: 900; color: #000; box-shadow: 0 0 20px rgba(0,255,204,0.3);
+  }
+  .profile-card-box {
+    background: #1c1c27; border-radius: 16px; padding: 20px;
+    border: 1px solid rgba(255,255,255,0.03); margin-bottom: 20px;
+  }
+  .profile-card-row {
+    display: flex; justify-content: space-between; padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 1rem;
+  }
+  .profile-card-row:last-child { border-bottom: none; }
+  .profile-card-row span:first-child { color: #8e8e93; }
+  .profile-card-row span:last-child { color: #fff; font-weight: bold; }
+
+  .action-grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+  .prof-action-btn {
+    padding: 14px; border: none; border-radius: 10px; font-weight: bold;
+    font-size: 0.95rem; text-transform: uppercase; cursor: pointer; text-align: center; text-decoration: none;
+  }
+  .btn-dep { background: #00ffcc; color: #000; box-shadow: 0 4px 12px rgba(0,255,204,0.2); }
+  .btn-wit { background: #ff0055; color: #fff; box-shadow: 0 4px 12px rgba(255,0,85,0.2); }
+  .btn-log { width: 100%; background: #222; color: #ff4d4d; border: 1px solid #333; }
+    
     /* 📱 मोबाइल फ्रेम - सुंदर छोटा फिट कसीनो साइज */
     .app-wrapper {
       width: 100%;
@@ -378,6 +420,103 @@
       localStorage.clear();
       window.location.href = 'index.html';
     }
+            // 🔄 टैब बदलने का फंक्शन (Home और Profile के बीच स्विच करना)
+  function switchTab(tabName) {
+    const homeBtn = document.getElementById('home-nav-btn');
+    const profBtn = document.getElementById('profile-nav-btn');
+    const profScreen = document.getElementById('profile-section-screen');
+    
+    // ⚠️ आपकी app-wrapper div को छुपाने और दिखाने के लिए
+    const gameArea = document.querySelector('.app-wrapper') || document.querySelector('.container');
+
+    if (tabName === 'home') {
+      if(homeBtn) homeBtn.classList.add('active');
+      if(profBtn) profBtn.classList.remove('active');
+      if(gameArea) gameArea.style.display = 'block';
+      if(profScreen) profScreen.style.display = 'none';
+    } else {
+      if(profBtn) profBtn.classList.add('active');
+      if(homeBtn) homeBtn.classList.remove('active');
+      if(gameArea) gameArea.style.display = 'none';
+      if(profScreen) profScreen.style.display = 'block';
+      loadLiveProfileData(); // प्रोफाइल खुलते ही लाइव बैलेंस और डेटा लाओ
+    }
+  }
+
+  // 📊 सुपाबेस से खिलाड़ी का लाइव बैलेंस, नाम और आईडी मोबाइल नंबर से निकालना
+  async function loadLiveProfileData() {
+    const userMobile = localStorage.getItem('my77play_user');
+    if(!userMobile) return;
+
+    try {
+      // ⚡ यहाँ ध्यान दें: सुपाबेस क्लाइंट का नाम चेक कर लें (supabaseClient या supabase)
+      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : (typeof supabase !== 'undefined' ? supabase : null);
+      if(!client) return;
+
+      const { data: user, error } = await client
+        .from('users')
+        .select('*')
+        .eq('mobile', userMobile)
+        .maybeSingle();
+
+      if(user) {
+        document.getElementById('prof-name').innerText = user.name || "No Name";
+        document.getElementById('prof-id').innerText = user.player_id || "N/A";
+        document.getElementById('prof-mobile').innerText = user.mobile;
+        document.getElementById('prof-balance').innerText = "₹" + parseFloat(user.balance || 0).toFixed(2);
+        
+        // नाम का पहला अक्षर अवतार में दिखाना
+        if(user.name) {
+          document.getElementById('avatar-letter').innerText = user.name.charAt(0).toUpperCase();
+        }
+      }
+    } catch (err) {
+      console.log("Profile balance load error:", err);
+    }
+  }
+
+  // 🔒 लॉगआउट करने का पुराना फंक्शन हैंडलर
+  function handleUserLogout() {
+    if(confirm("क्या आप सच में लॉगआउट करना चाहते हैं?")) {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  }
   </script>
+  <!-- ================= 📱 बॉटम बटन पट्टी (Navigation) ================= -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="home-nav-btn" onclick="switchTab('home')">
+      <span style="font-size: 1.3rem;">🎮</span>
+      <span>HOME</span>
+    </button>
+    <button class="nav-btn" id="profile-nav-btn" onclick="switchTab('profile')">
+      <span style="font-size: 1.3rem;">👤</span>
+      <span>PROFILE</span>
+    </button>
+  </div>
+
+  <!-- ================= 👤 लाइव वीआईपी प्रोफाइल स्क्रीन कार्ड ================= -->
+  <div id="profile-section-screen" class="profile-screen-wrapper">
+    <h1 style="text-align:center; color:#00ffcc; text-transform:uppercase; letter-spacing:1px; margin-top:20px; font-size: 1.8rem; text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);">My Profile</h1>
+    
+    <div class="vip-avatar" id="avatar-letter">U</div>
+
+    <!-- यूजर की लाइव सुपाबेस कुंडली -->
+    <div class="profile-card-box">
+      <div class="profile-card-row"><span>Account Name</span><span id="prof-name">Loading...</span></div>
+      <div class="profile-card-row"><span>Player ID</span><span id="prof-id">Loading...</span></div>
+      <div class="profile-card-row"><span>Mobile Number</span><span id="prof-mobile">Loading...</span></div>
+      <div class="profile-card-row"><span>Available Balance</span><span id="prof-balance" style="color:#00ffcc;">₹0.00</span></div>
+    </div>
+
+    <!-- रिचार्ज और विड्रॉल के वीआईपी बटन्स -->
+    <div class="action-grid-buttons">
+      <a href="recharge.html" class="prof-action-btn btn-dep">➕ Recharge</a>
+      <a href="withdrawal.html" class="prof-action-btn btn-wit">➖ Withdrawal</a>
+    </div>
+
+    <!-- लॉगआउट बटन -->
+    <button class="prof-action-btn btn-log" onclick="handleUserLogout()">🔒 Log Out Account</button>
+  </div>
 </body>
 </html>
