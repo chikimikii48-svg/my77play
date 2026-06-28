@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>my77play - Secure Admin Gateway</title>
+  <title>my77play - VIP Super Admin Center</title>
   
-  <!-- ⚡ सुपाबेस की लाइव लाइब्रेरी यहाँ जोड़ दी है -->
+  <!-- Supabase Client Script -->
   <script src="https://jsdelivr.net"></script>
   
   <style>
@@ -13,9 +13,9 @@
       --bg-color: #030308;
       --card-bg: #0b0b16;
       --primary-color: #ff0055; 
-      --primary-glow: rgba(255, 0, 85, 0.5);
+      --primary-glow: rgba(255, 0, 85, 0.4);
       --success-color: #00ffcc;
-      --success-glow: rgba(0, 255, 204, 0.4);
+      --success-glow: rgba(0, 255, 204, 0.3);
       --text-color: #ffffff;
       --text-muted: #8e8e93;
     }
@@ -23,82 +23,46 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: var(--bg-color);
+      background: #000;
       font-family: 'Segoe UI', Roboto, sans-serif;
       color: var(--text-color);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
-    /* 🖥️ PC Full Screen VIP Login Box */
+    /* 🖥️ PC Full Screen VIP Login Gateway */
     #admin-login-box {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      width: 100vw;
-      height: 100vh;
+      min-height: 100vh;
       background: radial-gradient(circle at center, #15051a 0%, #000000 100%);
       padding: 20px;
-      transition: all 0.5s ease;
     }
+
+    .welcome-header {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: #fff;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 35px;
+      text-shadow: 0 0 25px var(--primary-glow);
+      line-height: 1.3;
+    }
+    .welcome-header span { color: var(--primary-color); }
 
     .login-card {
       background: var(--card-bg);
       border: 1px solid rgba(255, 0, 85, 0.25);
-      padding: 50px;
-      border-radius: 24px;
+      padding: 45px;
+      border-radius: 20px;
       width: 100%;
-      max-width: 500px;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 30px rgba(255, 0, 85, 0.05);
-      text-align: center;
+      max-width: 480px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     }
-
-    .main-title {
-      font-size: 2.8rem;
-      font-weight: 900;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 35px;
-      text-shadow: 0 0 20px var(--primary-glow);
-    }
-    .main-title span { color: var(--primary-color); }
-
-    .form-group { margin-bottom: 24px; text-align: left; }
-    label {
-      display: block; font-size: 0.85rem; color: var(--text-muted);
-      margin-bottom: 10px; text-transform: uppercase; font-weight: bold;
-      letter-spacing: 1px;
-    }
-
-    input {
-      width: 100%; padding: 16px; background: #05050a;
-      border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;
-      color: #fff; font-size: 1.1rem; font-weight: bold; outline: none;
-      transition: 0.3s;
-    }
-    input:focus { border-color: var(--primary-color); box-shadow: 0 0 15px var(--primary-glow); }
-
-    .admin-btn {
-      width: 100%; padding: 16px; border: none; border-radius: 12px;
-      font-size: 1.1rem; font-weight: bold; text-transform: uppercase;
-      cursor: pointer; transition: 0.2s; text-align: center;
-      background: var(--primary-color); color: #fff; box-shadow: 0 4px 20px var(--primary-glow);
-      letter-spacing: 1.5px; margin-top: 10px;
-    }
-    .admin-btn:active { transform: scale(0.98); }
-    .admin-btn:disabled { background: #555; box-shadow: none; cursor: not-allowed; }
-
-    #login-status-msg {
-      text-align: center; font-size: 1rem; font-weight: bold; margin-bottom: 25px;
-      display: none; padding: 16px; border-radius: 10px; width: 100%; max-width: 500px;
-    }
-    .status-success { background: rgba(0, 255, 204, 0.1); color: var(--success-color); border: 1px solid var(--success-color); text-shadow: 0 0 10px var(--success-glow); }
-    .status-error { background: rgba(255, 0, 85, 0.1); color: var(--primary-color); border: 1px solid var(--primary-color); }
 
     /* 🖥️ ३ सेकंड वाला बड़ा वेलकम स्क्रीन */
     #welcome-screen {
@@ -110,7 +74,6 @@
       height: 100vh;
       background: #000;
       text-align: center;
-      animation: fadeIn 0.5s ease;
     }
     .big-welcome-text {
       font-size: 4.5rem;
@@ -123,48 +86,120 @@
     }
     .big-welcome-text span { color: #fff; font-size: 2.5rem; display: block; margin-top: 15px; letter-spacing: 1px; font-weight: 500;}
 
-    /* 💻 बाद में चालू होने वाली होम स्क्रीन (अभी के लिए डमी) */
+    /* 💻 Main Full Screen Control Dashboard Layout */
     #admin-main-panel {
-      display: none;
-      width: 100vw;
-      height: 100vh;
-      padding: 40px;
-      background: #05050a;
-      overflow-y: auto;
+      display: none; 
+      padding: 30px;
+      max-width: 1650px;
+      margin: 0 auto;
     }
-    .dashboard-header {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      padding-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .dashboard-header h1 { color: var(--primary-color); font-size: 2.5rem; text-transform: uppercase; text-shadow: 0 0 15px var(--primary-glow); }
-    .logout-btn { background: #222; color: #fff; width: auto; padding: 10px 25px; border-radius: 8px; border: 1px solid #333; font-weight: bold; cursor: pointer; }
-    .logout-btn:hover { background: var(--primary-color); border-color: var(--primary-color); box-shadow: 0 0 15px var(--primary-glow); }
-    .dummy-content { margin-top: 50px; text-align: center; color: var(--text-muted); font-size: 1.5rem; border: 2px dashed #222; padding: 100px; border-radius: 20px; }
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .admin-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 25px;
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    h1, h2 {
+      color: var(--primary-color);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block; font-size: 0.85rem; color: var(--text-muted);
+      margin-bottom: 8px; text-transform: uppercase; font-weight: bold;
+    }
+
+    input, select {
+      width: 100%; padding: 14px; background: #05050a;
+      border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;
+      color: #fff; font-size: 1rem; font-weight: bold; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary-color); box-shadow: 0 0 12px var(--primary-glow); }
+
+    .admin-btn {
+      width: 100%; padding: 15px; border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: bold; text-transform: uppercase;
+      cursor: pointer; transition: 0.2s; text-align: center;
+    }
+    .btn-action { background: var(--primary-color); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
+    .btn-save { background: var(--success-color); color: #000; box-shadow: 0 4px 15px var(--success-glow); }
+    .admin-btn:active { transform: scale(0.98); }
+
+    .control-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .control-row:last-child { border-bottom: none; }
+
+    /* Switch Style */
+    .switch { position: relative; display: inline-block; width: 55px; height: 30px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #2c2c3e; border-radius: 34px; transition: .3s;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px;
+      background-color: white; border-radius: 50%; transition: .3s;
+    }
+    input:checked + .slider { background-color: var(--success-color); }
+    input:checked + .slider:before { transform: translateX(25px); }
+
+    /* History Table Wrapper */
+    .history-table-wrapper {
+      max-height: 250px; overflow-y: auto; margin-top: 15px;
+      border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    th, td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    th { background: #05050a; color: var(--text-muted); text-transform: uppercase; }
+
+    #status-msg, #login-status-msg {
+      text-align: center; font-size: 0.9rem; font-weight: bold; margin-bottom: 20px;
+      display: none; padding: 14px; border-radius: 8px;
+    }
+    .status-success { background: rgba(0, 255, 204, 0.1); color: var(--success-color); border: 1px solid var(--success-color); }
+    .status-error { background: rgba(255, 0, 85, 0.1); color: var(--primary-color); border: 1px solid var(--primary-color); }
   </style>
 </head>
 <body>
 
-  <!-- ================= 🔒 १. फुल स्क्रीन लॉगिन गेटवे ================= -->
+  <!-- ================= 🔒 १. फुल स्क्रीन शानदार लॉगिन गेटवे ================= -->
   <div id="admin-login-box">
+    <div class="welcome-header">
+      Welcome to my77play<br><span>Admin Panel</span>
+    </div>
+    
     <div id="login-status-msg"></div>
 
     <div class="login-card">
-      <div class="main-title">my77play<br><span>Admin Gateway</span></div>
-      
       <div class="form-group">
         <label>Admin Mobile Number</label>
-        <input type="text" id="admin-id-input" placeholder="Enter Registered Mobile" autocomplete="off">
+        <input type="text" id="admin-id-input" placeholder="Enter Registered Admin Mobile" autocomplete="off">
       </div>
       <div class="form-group">
-        <label>Secret Password</label>
-        <input type="password" id="admin-pass-input" placeholder="Enter Password">
+        <label>Security Password</label>
+        <input type="password" id="admin-pass-input" placeholder="••••••••">
       </div>
-      <button class="admin-btn" id="login-btn" onclick="handleAdminLogin()">Secure Access</button>
+      <button class="admin-btn btn-action" id="login-btn" onclick="handleAdminLogin()">Grant Full Access</button>
     </div>
   </div>
 
@@ -175,83 +210,279 @@
     </div>
   </div>
 
-  <!-- ================= 💻 ३. एडमिन पैनल की होम स्क्रीन (बाद में फीचर्स जोड़ेंगे) ================= -->
+  <!-- ================= 💻 ३. मुख्य फुल स्क्रीन वीआईपी कंट्रोल सेंटर ================= -->
   <div id="admin-main-panel">
-    <div class="dashboard-header">
-      <h1>my77play VIP Control Dashboard</h1>
-      <button class="logout-btn" onclick="location.reload()">LOGOUT</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+      <h1>my77play System Control (VIP Center)</h1>
+      <button class="admin-btn btn-action" style="width: auto; padding: 10px 20px;" onclick="location.reload()">Logout</button>
     </div>
-    
-    <div class="dummy-content">
-      ⚙️ एडमिन होम स्क्रीन सर्वर से सफलतापूर्वक कनेक्ट हो गई है।<br>
-      <span style="font-size: 1.1rem; color: #555; display:block; margin-top: 10px;">आगे का पूरा कंट्रोल सिस्टम (यूजर सर्च, वॉलेट और गेम ब्लॉक) हम अगले स्टेप में यहाँ लाइव चालू करेंगे।</span>
-    </div>
-  </div>
 
+    <div id="status-msg"></div>
+
+    <!-- मल्टी ऑप्शन सर्च बार इंजन -->
+    <div class="admin-card" style="margin-bottom: 25px;">
+      <h2>🔍 Multi-Option Player Search Engine</h2>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px;">
+        <select id="search-type">
+          <option value="mobile">Mobile Number</option>
+          <option value="id">Player User ID</option>
+          <option value="name">Player Name</option>
+        </select>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="search-input" placeholder="Type here to search user...">
+          <button class="admin-btn btn-action" style="width: auto; padding: 0 30px;" onclick="searchPlayer()">Search</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- दो हिस्सों का पीसी डैशबोर्ड ग्रिड सिस्टम -->
+    <div class="dashboard-grid">
+      
+      <!-- लेफ्ट साइड: प्लेयर डिटेल्स और वॉलेट मॉडिफायर -->
+      <div class="admin-card" id="player-card" style="opacity: 0.4; pointer-events: none; transition: 0.3s;">
+        <h2>👤 Active Player Action Center</h2>
+        <div style="background: #05050a; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8;">
+          <div><strong>ID:</strong> <span id="meta-id">---</span></div>
+          <div><strong>Name:</strong> <span id="meta-name">---</span></div>
+          <div><strong>Mobile:</strong> <span id="meta-mobile">---</span></div>
+          <div><strong>Current Balance:</strong> ₹<span id="meta-balance" style="color:var(--success-color); font-weight:bold;">0.00</span></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+          <div class="form-group">
+            <label>Wallet Update Action</label>
+            <select id="wallet-action-type">
+              <option value="recharge">➕ Add Money (Recharge)</option>
+              <option value="withdrawal">➖ Deduct Money (Withdrawal)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" id="wallet-amount-input" placeholder="0.00" step="any">
+          </div>
+        </div>
+
+        <div class="control-row" style="margin-bottom: 20px;">
+          <div>
+            <strong style="color:var(--primary-color)">ID FREEZE SYSTEM</strong>
+            <div style="font-size:0.8rem; color:var(--text-muted)">Block total player account access instantly</div>
+          </div>
+<!-- ================= 🧠 भाग २: लाइव सुपाबेस लॉगिन और डेटाबेस बैकएंड ================= -->
   <script>
-    // ⚡ आपकी index.html से निकाली गई असली क्रेडेंशियल्स यहाँ ऑटो-फिट कर दी हैं
+    // ⚡ आपकी index.html वाली असली सुपाबेस क्रेडेंशियल्स यहाँ सेट हैं
     const SUPABASE_URL = 'https://supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
 
-    // सुपाबेस इनिशियलाइज़ करना
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let targetPlayerId = null;
 
+    // 1. 🔐 सुपाबेस लाइव एडमिन लॉगिन लॉजिक (users टेबल से मैच)
     async function handleAdminLogin() {
       const inputId = document.getElementById('admin-id-input').value.trim();
-      const inputPass = document.getElementById('admin-pass-input').value;
-      const statusMsg = document.getElementById('login-status-msg');
+      const password = document.getElementById('admin-pass-input').value;
+      const loginStatus = document.getElementById('login-status-msg');
       const loginBtn = document.getElementById('login-btn');
 
-      if(!inputId || !inputPass) {
-        showStatus(statusMsg, "कृपया मोबाइल नंबर और पासवर्ड दोनों भरें!", "error");
+      if(!inputId || !password) {
+        setMsg(loginStatus, "कृपया मोबाइल नंबर और पासवर्ड दोनों भरें!", "error");
         return;
       }
 
       loginBtn.disabled = true;
-      showStatus(statusMsg, "सुरक्षा क्रेडेंशियल्स की जांच जारी है...", "success");
+      setMsg(loginStatus, "सुरक्षा क्रेडेंशियल्स की जांच जारी है...", "success");
 
       try {
-        // आपकी सुपाबेस की 'users' टेबल से मोबाइल नंबर और पासवर्ड मैच करना
+        // आपकी 'users' टेबल से मोबाइल नंबर और पासवर्ड का लाइव मिलान
         const { data: adminUser, error } = await supabase
           .from('users')
           .select('*')
           .eq('mobile', inputId)
-          .eq('password', inputPass)
-          .eq('is_admin', true) // डेटाबेस में इस कॉलम का true होना जरूरी है
+          .eq('password', password)
           .maybeSingle();
 
         if (error) {
-          showStatus(statusMsg, "सर्वर एरर! कृपया दोबारा प्रयास करें।", "error");
+          setMsg(loginStatus, "सर्वर से संपर्क करने में गड़बड़ हुई!", "error");
           loginBtn.disabled = false;
           return;
         }
 
-        // अगर क्रेडेंशियल्स सही हैं और यूजर एडमिन है
-        if (adminUser) {
+        if (!adminUser) {
+          setMsg(loginStatus, "गलत एडमिन आईडी या पासवर्ड!", "error");
+          loginBtn.disabled = false;
+          return;
+        }
+
+        // 🛡️ मुख्य सुरक्षा जांच: क्या users टेबल में 'is_admin' कॉलम 'true' है?
+        if (adminUser.is_admin === true || String(adminUser.is_admin).toLowerCase() === 'true') {
+          // सफलता! लॉगिन बॉक्स छुपाएं और ३ सेकंड का एनीमेशन दिखाएं
           document.getElementById('admin-login-box').style.display = 'none';
           document.getElementById('welcome-screen').style.display = 'flex';
           
-          // 3 सेकंड का डिले देकर होम स्क्रीन खोलना
           setTimeout(() => {
             document.getElementById('welcome-screen').style.display = 'none';
             document.getElementById('admin-main-panel').style.display = 'block';
+            showTopMsg("VIP कंट्रोल सेंटर में आपका स्वागत है!", "success");
+            loadGlobalGameStatus(); // ग्लोबल ४ गेम्स का ब्लॉक स्टेटस लोड करें
           }, 3000);
 
         } else {
-          showStatus(statusMsg, "पहुंच अस्वीकृत! गलत पासवर्ड या आप एडमिन नहीं हैं।", "error");
+          // यदि यूजर रजिस्टर्ड है लेकिन एडमिन नहीं है
+          setMsg(loginStatus, "एक्सेस ब्लॉक! आपको एडमिन पैनल की अनुमति नहीं है।", "error");
           loginBtn.disabled = false;
         }
 
       } catch (e) {
-        showStatus(statusMsg, "कनेक्शन फेल! कृपया रिफ्रेश करें।", "error");
+        setMsg(loginStatus, "सुरक्षा अवरोध! कनेक्शन डाउन है।", "error");
         loginBtn.disabled = false;
       }
     }
 
-    function showStatus(el, text, type) {
-      el.innerText = text;
-      el.style.display = "block";
+    // 2. 🔍 खिलाड़ी को नाम, आईडी या मोबाइल नंबर से खोजना
+    async function searchPlayer() {
+      const type = document.getElementById('search-type').value;
+      const value = document.getElementById('search-input').value.trim();
+      const pCard = document.getElementById('player-card');
+
+      if(!value) {
+        showTopMsg("कृपया सर्च बॉक्स में कुछ इनपुट टाइप करें!", "error");
+        return;
+      }
+
+      showTopMsg("डेटाबेस सर्वर से खोज जारी है...", "success");
+
+      let query = supabase.from('users').select('*');
+      if (type === 'mobile') query = query.eq('mobile', value);
+      else if (type === 'id') query = query.eq('id', value);
+      else if (type === 'name') query = query.ilike('name', `%${value}%`);
+
+      const { data: players, error } = await query;
+
+      if(error || !players || players.length === 0) {
+        showTopMsg("खिलाड़ी नहीं मिला! कृपया सही विवरण दर्ज करें।", "error");
+        pCard.style.opacity = "0.4"; pCard.style.pointerEvents = "none";
+        return;
+      }
+
+      const user = players[0]; // पहला मैचिंग प्लेयर चुनें
+      targetPlayerId = user.id;
+
+      // स्क्रीन पर प्लेयर का डेटा असाइन करना
+      document.getElementById('meta-id').innerText = user.id;
+      document.getElementById('meta-name').innerText = user.name || "No Name";
+      document.getElementById('meta-mobile').innerText = user.mobile || "N/A";
+      document.getElementById('meta-balance').innerText = parseFloat(user.balance || 0).toFixed(2);
+      document.getElementById('toggle-block').checked = user.is_blocked || false;
+
+      // प्लेयर कंट्रोल बॉक्स को अनलॉक (Active) करना
+      pCard.style.opacity = "1"; pCard.style.pointerEvents = "auto";
+      showTopMsg("खिलाड़ी प्रोफ़ाइल सफलतापूर्वक लोड हो गई!", "success");
+
+      // उसकी रिचार्ज/विड्रॉल हिस्ट्री लाएं
+      loadPlayerHistory(user.id);
+    }
+
+    // 3. ➕➖ वॉलेट रिचार्ज/विड्रॉल अपडेट और ID ब्लॉक सिस्टम
+    async function updatePlayerSettings() {
+      if(!targetPlayerId) return;
+
+      const action = document.getElementById('wallet-action-type').value;
+      const amount = parseFloat(document.getElementById('wallet-amount-input').value) || 0;
+      const isBlocked = document.getElementById('toggle-block').checked;
+      const currentBalance = parseFloat(document.getElementById('meta-balance').innerText);
+
+      let finalBalance = currentBalance;
+      if(amount > 0) {
+        finalBalance = (action === 'recharge') ? (currentBalance + amount) : (currentBalance - amount);
+      }
+
+      showTopMsg("डेटाबेस सिंक किया जा रहा है...", "success");
+
+      // सीधे आपकी 'users' टेबल को लाइव अपडेट करना
+      const { error: profileError } = await supabase
+        .from('users')
+        .update({ balance: finalBalance, is_blocked: isBlocked })
+        .eq('id', targetPlayerId);
+
+      if(profileError) {
+        showTopMsg("त्रुटि: " + profileError.message, "error");
+        return;
+      }
+
+      // अगर बैलेंस में लेनदेन हुआ है, तो 'transactions' टेबल में हिस्ट्री डालें
+      if(amount > 0) {
+        await supabase.from('transactions').insert({
+          user_id: String(targetPlayerId),
+          type: action, 
+          amount: amount,
+          status: 'completed'
+        });
+      }
+
+      showTopMsg("खिलाड़ी का वॉलेट और ब्लॉक स्टेटस सुरक्षित रूप से अपडेट हो गया!", "success");
+      document.getElementById('meta-balance').innerText = finalBalance.toFixed(2);
+      document.getElementById('wallet-amount-input').value = "";
+      loadPlayerHistory(targetPlayerId);
+    }
+
+    // 4. 📜 खिलाड़ी की लेनदेन हिस्ट्री लोड करना
+    async function loadPlayerHistory(userId) {
+      const { data: logs, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', String(userId))
+        .order('id', { ascending: false });
+
+      const tbody = document.getElementById('history-rows');
+      tbody.innerHTML = "";
+
+      if(error || !logs || logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">कोई लेन-देन रिकॉर्ड नहीं मिला।</td></tr>`;
+        return;
+      }
+
+      logs.forEach(log => {
+        const date = log.created_at ? new Date(log.created_at).toLocaleString() : "Just Now";
+        const badgeColor = log.type === 'recharge' ? 'var(--success-color)' : 'var(--primary-color)';
+        tbody.innerHTML += `
+          <tr>
+            <td style="color:${badgeColor}; font-weight:bold;">${log.type.toUpperCase()}</td>
+            <td>₹${parseFloat(log.amount).toFixed(2)}</td>
+            <td style="font-size:0.8rem; color:var(--text-muted);">${date}</td>
+            <td style="color:#00ffcc">${log.status || 'completed'}</td>
+          </tr>
+        `;
+      });
+    }
+
+    // 5. 🎮 ग्लोबल ४ गेम्स (Wingo, Head Tail, Mines, Casino) को ब्लॉक/चालू करना
+    async function toggleGameBlock(gameColumn, isChecked) {
+      const updateData = {};
+      updateData[gameColumn] = isChecked; 
+
+      const { error } = await supabase.from('game_controls').update(updateData).eq('id', 1);
+      if(!error) {
+        showTopMsg("गेम सर्वर कॉन्फ़िगरेशन लाइव अपडेट हो गया!", "success");
+      }
+    }
+
+    // ग्लोबल गेम्स का पुराना स्टेटस डेटाबेस से लोड करना
+    async function loadGlobalGameStatus() {
+      const { data } = await supabase.from('game_controls').select('*').eq('id', 1).maybeSingle();
+      if(data) {
+        document.getElementById('game-wingo').checked = data.wingo_game || false;
+        document.getElementById('game-headtail').checked = data.headtail_game || false;
+        document.getElementById('game-mines').checked = data.mines_game || false;
+        document.getElementById('game-casino').checked = data.casino_game || false;
+      }
+    }
+
+    // यूटिलिटीज मैसेजेस सिस्टम
+    function setMsg(el, txt, type) {
+      el.innerText = txt; el.style.display = "block";
       el.className = type === 'success' ? 'status-success' : 'status-error';
+    }
+    function showTopMsg(txt, type) {
+      setMsg(document.getElementById('status-msg'), txt, type);
     }
   </script>
 </body>
