@@ -1,285 +1,182 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <!-- 🛠️ यहाँ cdn.jsdelivr.net को पूरी तरह से ठीक कर दिया गया है -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co;">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>my77play - Dashboard</title>
-  <!-- Supabase JS Library -->
-  <script src="https://jsdelivr.net"></script>
-  <style>
-    :root {
-      --bg-color: #09090e;
-      --card-bg: #151522;
-      --primary-color: #00ffcc;
-      --primary-glow: rgba(0, 255, 204, 0.3);
-      --text-color: #ffffff;
-      --text-muted: #8e8e93;
-      --error-color: #ff3b30;
-      --gradient-mine: linear-gradient(135deg, #ff416c, #ff4b2b);
-      --gradient-wingo: linear-gradient(135deg, #8a2387, #e94057, #f27121);
-      --gradient-slot: linear-gradient(135deg, #11998e, #38ef7d);
-      --gradient-head: linear-gradient(135deg, #f12711, #f5af19);
+<script>
+  // 🛠️ फिक्स: आपका असली प्रोजेक्ट URL वापस सेट कर दिया गया है
+  const supabaseUrl = 'https://ffejvfluwezmbrfvxmsj.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
+
+  let supabaseClient = null;
+  const loggedInUserMobile = localStorage.getItem('my77play_user');
+
+  // Supabase को चालू करने का मजबूत फंक्शन
+  function initSupabase() {
+    try {
+      if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+      } else {
+        console.log("Supabase Library load nahi ho payi.");
+      }
+    } catch(e) {
+      console.log("Supabase init error:", e);
     }
+  }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-    body {
-      background: #000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      color: var(--text-color);
-      display: flex;
-      justify-content: center;
-    }
-
-    /* 📱 मोबाइल फ्रेम - इसके कारण यह कंप्यूटर पर भी मोबाइल जैसा दिखेगा */
-    .app-wrapper {
-      width: 100%;
-      max-width: 420px;
-      min-height: 100vh;
-      background: var(--bg-color);
-      position: relative;
-      padding-bottom: 90px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.8);
-      overflow-x: hidden;
-    }
-
-    /* प्रीमियम हेडर */
-    header {
-      background: var(--card-bg);
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(0, 255, 204, 0.1);
-      position: sticky;
-      top: 0;
-      z-index: 99;
-    }
-
-    .brand-title {
-      font-size: 1.4rem;
-      font-weight: 900;
-      color: var(--primary-color);
-      letter-spacing: 1px;
-      text-shadow: 0 0 10px var(--primary-glow);
-      margin: 0;
-    }
-
-    .top-user-id {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      background: rgba(255,255,255,0.05);
-      padding: 4px 8px;
-      border-radius: 4px;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .main-content { padding: 15px; }
-
-    .page-section { display: none; }
-    .page-section.active { display: block; }
-
-    /* कसीनो स्टाइल वॉलेट कार्ड */
-    .wallet-card {
-      background: linear-gradient(135deg, #1e1e30 0%, #11111a 100%);
-      border: 1px solid rgba(0, 255, 204, 0.2);
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-      margin-bottom: 25px;
-    }
-
-    .wallet-title {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 5px;
-    }
-
-    .wallet-balance {
-      font-size: 2.3rem;
-      font-weight: 800;
-      color: var(--primary-color);
-      text-shadow: 0 0 15px var(--primary-glow);
-    }
-
-    /* असली गेम डिज़ाइन ग्रिड */
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 15px;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section-title::before {
-      content: '';
-      display: inline-block;
-      width: 4px;
-      height: 16px;
-      background: var(--primary-color);
-      border-radius: 2px;
-    }
-
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    /* प्रो-गेमिंग कार्ड्स */
-    .game-card {
-      position: relative;
-      border-radius: 14px;
-      padding: 18px 12px;
-      text-decoration: none;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: space-between;
-      height: 130px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-      transition: transform 0.2s, box-shadow 0.2s;
-      overflow: hidden;
-    }
-    .game-card:active { transform: scale(0.97); }
-
-    /* अलग-अलग गेम्स के प्रीमियम बैकग्राउंड */
-    #game-mine { background: var(--gradient-mine); }
-    #game-wingo { background: var(--gradient-wingo); }
-    #game-slot { background: var(--gradient-slot); }
-    #game-head-tail { background: var(--gradient-head); }
-
-    /* गेम कार्ड के अंदर की सजावट */
-    .game-card::before {
-      content: '';
-      position: absolute;
-      right: -10px; bottom: -10px;
-      font-size: 4.5rem;
-      opacity: 0.15;
-      font-weight: 900;
-    }
-    #game-mine::before { content: '💣'; }
-    #game-wingo::before { content: '🎰'; }
-    #game-slot::before { content: '👑'; }
-    #game-head-tail::before { content: '🪙'; }
-
-    .game-name { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
-    .game-status { font-size: 0.7rem; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 10px; margin-top: 5px; }
-
-    /* 🔒 लॉक गेम ओवरले स्टाइल */
-    .game-card.locked {
-      filter: grayscale(0.9);
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .game-card.locked::after {
-      content: '🔒 LOCKED';
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      display: flex; justify-content: center; align-items: center;
-      font-size: 0.9rem; font-weight: bold; color: #ff3b30; letter-spacing: 1px;
-    }
-
-    /* 👤 प्रोफाइल डिजाइन */
-    .profile-card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 20px;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-    .profile-header-box { text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
-    .profile-avatar { width: 65px; height: 65px; background: var(--primary-color); color: #000; font-size: 2rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; margin-bottom: 10px; box-shadow: 0 0 15px var(--primary-glow); }
+  // पेज लोड होते ही तुरंत बिना 'Loading...' दिखाए डेटा सेट करने का लॉजिक
+  window.onload = async function() {
+    initSupabase();
     
-    .profile-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.95rem; }
-    .profile-item span:first-child { color: var(--text-muted); }
-    .profile-item span:last-child { color: #fff; font-weight: 600; }
+    // अगर यूजर लॉगिन नहीं है, तो उसे वापस लॉगिन पेज (index.html) पर भेज दो
+    if (!loggedInUserMobile) {
+      window.location.href = 'index.html';
+      return;
+    }
 
-    .profile-actions { display: flex; gap: 12px; margin-top: 20px; }
-    .action-btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; text-transform: uppercase; text-decoration: none; text-align: center; display: inline-block; }
-    .btn-recharge { background: var(--primary-color); color: #000; box-shadow: 0 4px 12px var(--primary-glow); }
-    .btn-withdraw { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+    // लोकलस्टोरेज से पुरानी आईडी तुरंत निकालें
+    const localPlayerId = localStorage.getItem('my77play_id');
+    const localPlayerName = localStorage.getItem('my77play_name');
     
-    .logout-btn { background: #ff3b30; color: #fff; border: none; width: 100%; margin-top: 20px; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-
-    /* बॉटम नेविगेशन (मोबाइल स्टाइल) */
-    .bottom-nav {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      background: #11111a;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      display: flex;
-      justify-content: space-around;
-      padding: 12px 0;
-      z-index: 100;
+    // इंटरनेट का इंतजार किए बिना, लोकल डेटा तुरंत स्क्रीन पर दिखा दो (ताकि Loading ना दिखे)
+    if (localPlayerId) {
+      document.getElementById('header-player-id').innerText = "ID: " + localPlayerId;
+      document.getElementById('prof-id').innerText = localPlayerId;
+    } else {
+      const tempId = "User_" + loggedInUserMobile.substring(6);
+      document.getElementById('header-player-id').innerText = "ID: " + tempId;
+      document.getElementById('prof-id').innerText = tempId;
     }
-    .nav-item {
-      background: transparent; border: none; color: var(--text-muted);
-      font-size: 0.8rem; font-weight: 600; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-    }
-    .nav-item.active { color: var(--primary-color); }
-    .nav-icon { font-size: 1.3rem; }
-
-    /* 🚫 फुल स्क्रीन ब्लॉक स्क्रीन */
-    #block-screen {
-      position: fixed; top:0; left:0; width:100vw; height:100vh;
-      background: #09090e; color: var(--error-color); z-index: 99999;
-      display: none; flex-direction: column; justify-content: center;
-      align-items: center; text-align: center; padding: 25px;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- मोबाइल स्क्रीन रैपर -->
-  <div class="app-wrapper">
     
-    <!-- ब्लॉक स्क्रीन ओवरले -->
-    <div id="block-screen">
-      <span style="font-size: 4rem;">🚫</span>
-      <h1 style="margin: 15px 0 5px 0; font-size: 1.8rem; font-weight: 900;">ACCOUNT LOCKED</h1>
-      <p style="color: #fff; margin: 0 0 20px 0; font-size: 1rem;">Aapki ID temporary block kar di gayi hai.</p>
-      <p style="font-size: 0.85rem; color: var(--text-muted);">Assistance ke liye support team se baat karein.</p>
-    </div>
+    if (localPlayerName) {
+      document.getElementById('prof-name').innerText = localPlayerName;
+      document.getElementById('prof-avatar-letter').innerText = localPlayerName.charAt(0).toUpperCase();
+    } else {
+      document.getElementById('prof-name').innerText = "Player";
+      document.getElementById('prof-avatar-letter').innerText = "P";
+    }
+    
+    document.getElementById('prof-mobile').innerText = loggedInUserMobile;
 
-    <!-- हेडर -->
-    <header>
-      <div class="brand-title">MY77PLAY</div>
-      <div class="top-user-id" id="header-player-id">ID: Loading...</div>
-    </header>
+    // अब बैकग्राउंड में Supabase से तुरंत ताजा आईडी और बैलेंस चेक करो
+    if (supabaseClient) {
+      try {
+        const queryMobile = isNaN(loggedInUserMobile) ? loggedInUserMobile : Number(loggedInUserMobile);
 
-    <div class="main-content">
-      
-      <!-- ================= HOME SECTION ================= -->
-      <div id="home-section" class="page-section active">
-        <!-- लाइव वॉलेट -->
-        <div class="wallet-card">
-          <div class="wallet-title">Live Balance</div>
-          <div class="wallet-balance">₹<span id="main-balance">0.00</span></div>
-        </div>
+        const { data: userData, error } = await supabaseClient
+          .from('users')
+          .select('*')
+          .eq('mobile', queryMobile)
+          .maybeSingle();
 
-        <!-- असली गेम्स ग्रिड -->
-        <div class="section-title">Popular Games</div>
-        <div class="games-grid">
+        if (userData) {
+          // डेटा मिलते ही स्क्रीन तुरंत ताज़ा अपडेट कर दो
+          updateUI(userData);
           
-          <a href="mine_game.html" id="game-mine" class="game-card">
-            <p class="game-name">Mines</p>
-            <span class="game-status">Active Play</span>
-          </a>
+          // ⚡ रीयल-टाइम लिसनर चालू करें (मोबाइल और प्लेयर आईडी दोनों पर लॉक)
+          listenToLiveUpdates(userData.mobile, userData.player_id);
+          
+          // लोकलस्टोरेज को नए डेटा से अपडेट कर दो ताकि अगली बार तुरंत दिखे
+          localStorage.setItem('my77play_id', userData.player_id || '');
+          localStorage.setItem('my77play_name', userData.name || '');
+        } else {
+          handleLogout();
+        }
+      } catch (err) {
+        console.log("Supabase se data lene me dikkat aayi:", err);
+      }
+    }
+  };
 
-          <a href="wingo_game.html" id="game-wingo" class="game-card">
-            <p class="game-name">WinGo</p>
-            <span class="game-status">1 Min / 3 Min</span>
-          </a>
+  // इंटरफ़ेस (UI) को अपडेट करने का मुख्य फंक्शन
+  function updateUI(userRow) {
+    // 1. तुरंत ब्लॉक / लॉक चेक
+    if (userRow.is_blocked === true) {
+      document.getElementById('block-screen').style.display = 'flex';
+      localStorage.clear();
+      return;
+    } else {
+      document.getElementById('block-screen').style.display = 'none';
+    }
 
-          <a href="casino_slot.html" id="game-slot" class="game-card">
+    // 2. प्लेयर आईडी और नाम रेंडर करना
+    const pId = userRow.player_id || "------";
+    document.getElementById('header-player-id').innerText = "ID: " + pId;
+    document.getElementById('prof-id').innerText = pId;
+    
+    const uName = userRow.name || "Player";
+    document.getElementById('prof-name').innerText = uName;
+    document.getElementById('prof-avatar-letter').innerText = uName.charAt(0).toUpperCase();
+    document.getElementById('prof-mobile').innerText = userRow.mobile || "------";
+
+    // 3. लाइव वॉलेट बैलेंस अपडेट
+    const formattedBalance = parseFloat(userRow.balance || 0).toFixed(2);
+    document.getElementById('main-balance').innerText = formattedBalance;
+    document.getElementById('prof-balance').innerText = "₹" + formattedBalance;
+
+    // 4. लाइव गेम्स लॉक / अनलॉक सिस्टम
+    handleGameLock('game-mine', userRow.lock_mine);
+    handleGameLock('game-wingo', userRow.lock_wingo);
+    handleGameLock('game-slot', userRow.lock_slot);
+    handleGameLock('game-head-tail', userRow.lock_head_tail);
+  }
+
+  // गेम्स लॉक करने का हैंडलर
+  function handleGameLock(elementId, isLocked) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    if (isLocked === true) {
+      el.classList.add('locked');
+      el.onclick = function(e) { e.preventDefault(); alert("Yeh game admin dwara lock kiya gaya hai!"); };
+    } else {
+      el.classList.remove('locked');
+      el.onclick = null;
+    }
+  }
+
+  // ⚡ मोबाइल नंबर और प्लेयर आईडी दोनों पर आधारित असली रीयल-टाइम लिसनर लॉजिक
+  function listenToLiveUpdates(mobileNum, playerId) {
+    if (!supabaseClient) initSupabase();
+
+    supabaseClient
+      .channel('public:users')
+      .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'users',
+          filter: `mobile=eq.${mobileNum}` 
+      }, (payload) => {
+          console.log('Live update captured via mobile:', payload.new);
+          updateUI(payload.new);
+      })
+      .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'users',
+          filter: `player_id=eq.${playerId}` 
+      }, (payload) => {
+          console.log('Live update captured via player_id:', payload.new);
+          updateUI(payload.new);
+      })
+      .subscribe();
+  }
+
+  // टैब स्विचिंग (Home <-> Profile)
+  function switchTab(tabName) {
+    document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+
+    if (tabName === 'home') {
+      document.getElementById('home-section').classList.add('active');
+      document.getElementById('nav-home-btn').classList.add('active');
+    } else if (tabName === 'profile') {
+      document.getElementById('profile-section').classList.add('active');
+      document.getElementById('nav-profile-btn').classList.add('active');
+    }
+  }
+
+  // लॉग आउट (Log Out) करने का पूरा लॉजिक
+  function handleLogout() {
+    localStorage.removeItem('my77play_user');
+    localStorage.removeItem('my77play_id');
+    localStorage.removeItem('my77play_name');
+    window.location.href = 'index.html';
+  }
+</script>
+</body>
+</html>
