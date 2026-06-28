@@ -82,7 +82,7 @@
     .page-section { display: none; }
     .page-section.active { display: block; }
 
-    /* वॉलेट कार्ड */
+    /* कसीनो वॉलेट कार्ड */
     .wallet-card {
       background: linear-gradient(135deg, #1e1e30 0%, #11111a 100%);
       border: 1px solid rgba(0, 255, 204, 0.2);
@@ -133,7 +133,7 @@
       gap: 12px;
     }
 
-    /* 4 असली गेम्स कार्ड */
+    /* प्रो गेमिंग कार्ड्स */
     .game-card {
       position: relative;
       border-radius: 14px;
@@ -172,7 +172,7 @@
     .game-name { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
     .game-status { font-size: 0.7rem; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 10px; margin-top: 5px; }
 
-    /* 🔒 लॉक गेम ओवरले स्टाइल */
+    /* 🔒 लॉक ओवरले स्टाइल */
     .game-card.locked {
       filter: grayscale(0.9);
       opacity: 0.5;
@@ -208,7 +208,7 @@
     
     .logout-btn { background: #ff3b30; color: #fff; border: none; width: 100%; margin-top: 20px; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
 
-    /* बॉटम होम और प्रोफाइल बटन */
+    /* बॉटम फिक्स नेविगेशन */
     .bottom-nav {
       position: absolute;
       bottom: 0; left: 0; right: 0;
@@ -227,7 +227,7 @@
     .nav-item.active { color: var(--primary-color); }
     .nav-icon { font-size: 1.3rem; }
 
-    /* 🚫 फुल स्क्रीन ब्लॉक स्क्रीन */
+    /* 🚫 फुल स्क्रीन ब्लॉक स्क्रीन ओवरले */
     #block-screen {
       position: fixed; top:0; left:0; width:100vw; height:100vh;
       background: #09090e; color: var(--error-color); z-index: 99999;
@@ -240,15 +240,16 @@
 
   <div class="app-wrapper">
     
-    <!-- ब्लॉक स्क्रीन ओवरले -->
+    <!-- ब्लॉक स्क्रीन ओवरlevel (हिंदी और इंग्लिश) -->
     <div id="block-screen">
       <span style="font-size: 4rem;">🚫</span>
-      <h1 style="margin: 15px 0 5px 0; font-size: 1.8rem; font-weight: 900;">ACCOUNT LOCKED</h1>
-      <p style="color: #fff; margin: 0 0 20px 0; font-size: 1rem;">Aapki ID temporary block kar di gayi hai.</p>
-      <p style="font-size: 0.85rem; color: var(--text-muted);">Assistance ke liye support team se baat karein.</p>
+      <h1 style="margin: 15px 0 5px 0; font-size: 1.5rem; font-weight: 900; text-align: center;">
+        आपकी आईडी ब्लॉक कर दिया गया है!<br>Your ID is blocked!
+      </h1>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 15px;">Assistance ke liye support team se baat karein.</p>
     </div>
 
-    <!-- हेडर -->
+    <!-- हेडर (सबसे ऊपर यूजर आईडी दिखाने की व्यवस्था) -->
     <header>
       <div class="brand-title">MY77PLAY</div>
       <div class="top-user-id" id="display-player-id">ID: Loading...</div>
@@ -284,21 +285,21 @@
           </a>
 
           <a href="head_tail.html" id="game-head-tail" class="game-card">
-            <p class="game-name">Head & Tail</p>
-            <span class="game-status">Instant Win</span>
-          </a>
-          <script>
-    // Supabase Credentials
+<script>
+    // 🛠️ Supabase Credentials (index.html से हूबहू लिए गए हैं)
     const supabaseUrl = 'https://supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
     
     let supabaseClient = null;
-    const loggedInUserMobile = localStorage.getItem('my77play_user');
+    const rawMobile = localStorage.getItem('my77play_user');
 
     // सुरक्षा चेक: अगर यूजर लॉगिन नहीं है, तो उसे तुरंत वापस लॉगिन पेज पर भेजें
-    if (!loggedInUserMobile) {
+    if (!rawMobile) {
       window.location.href = 'index.html';
     }
+
+    // ⚡ नियम ३: लोकल स्टोरेज की String को तुरंत शुद्ध Number (int8) में बदलना अनिवार्य है
+    const loggedInUserMobile = Number(rawMobile);
 
     function initSupabase() {
       try {
@@ -316,12 +317,14 @@
       // ⚡ लोकलस्टोरेज से पुराना डेटा तुरंत लोड करें ताकि पेज पर Loading... ना अटके
       const localPlayerId = localStorage.getItem('my77play_id');
       const localPlayerName = localStorage.getItem('my77play_name');
+      const localBalance = localStorage.getItem('my77play_balance') || '0.00';
       
+      // तुरंत स्क्रीन पर रेंडर करना (फास्ट स्पीड के लिए)
       if (localPlayerId) {
         if(document.getElementById('display-player-id')) document.getElementById('display-player-id').innerText = "ID: " + localPlayerId;
         if(document.getElementById('prof-id')) document.getElementById('prof-id').innerText = localPlayerId;
       } else {
-        const tempId = "User_" + loggedInUserMobile.substring(6);
+        const tempId = "User_" + String(rawMobile).substring(6);
         if(document.getElementById('display-player-id')) document.getElementById('display-player-id').innerText = "ID: " + tempId;
         if(document.getElementById('prof-id')) document.getElementById('prof-id').innerText = tempId;
       }
@@ -331,18 +334,19 @@
         if(document.getElementById('prof-avatar-letter')) document.getElementById('prof-avatar-letter').innerText = localPlayerName.charAt(0).toUpperCase();
       }
       
-      if(document.getElementById('prof-mobile')) document.getElementById('prof-mobile').innerText = loggedInUserMobile;
+      if(document.getElementById('prof-mobile')) document.getElementById('prof-mobile').innerText = rawMobile;
+      
+      const formattedLocalBalance = parseFloat(localBalance).toFixed(2);
+      if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = formattedLocalBalance;
+      if(document.getElementById('prof-balance')) document.getElementById('prof-balance').innerText = "₹" + formattedLocalBalance;
 
       // बैकग्राउंड में Supabase से तुरंत ताजा लाइव डेटा लोड करें
       if (supabaseClient) {
         try {
-          // डेटाबेस में मोबाइल int8 (नंबर) है, इसलिए इसे नंबर में बदलना ज़रूरी है
-          const queryMobile = isNaN(loggedInUserMobile) ? loggedInUserMobile : Number(loggedInUserMobile);
-
           const { data: userData, error } = await supabaseClient
             .from('users')
             .select('*')
-            .eq('mobile', queryMobile)
+            .eq('mobile', loggedInUserMobile)
             .maybeSingle();
 
           if (error) {
@@ -354,12 +358,13 @@
             // UI को फ्रेश डेटा से अपडेट करें
             updateUI(userData);
             
-            // ⚡ रीयल-टाइम लिसनर चालू करें
+            // ⚡ रीयल-टाइम लिसनर चालू करें (शुद्ध नंबर मोबाइल और प्लेयर आईडी दोनों पर लॉक)
             listenToLiveUpdates(userData.mobile, userData.player_id);
             
-            // localStorage को नए ताज़ा डेटा से अपडेट करें
+            // localStorage को नए ताज़ा डेटा से अपडेट करें ताकि अगली बार तुरंत दिखे
             localStorage.setItem('my77play_id', userData.player_id || '');
             localStorage.setItem('my77play_name', userData.name || '');
+            localStorage.setItem('my77play_balance', String(userData.balance || 0));
           } else {
             handleLogout();
           }
@@ -371,7 +376,7 @@
 
     // इंटरफ़ेस (UI) को अपडेट करने का मुख्य फंक्शन
     function updateUI(userRow) {
-      // 1. तुरंत आईडी ब्लॉक / लॉक चेक
+      // 1. तुरंत आईडी ब्लॉक / लॉक चेक (हिंदी और इंग्लिश ओवरले स्क्रीन)
       if (userRow.is_blocked === true) {
         if(document.getElementById('block-screen')) document.getElementById('block-screen').style.display = 'flex';
         localStorage.clear();
@@ -394,6 +399,7 @@
       const formattedBalance = parseFloat(userRow.balance || 0).toFixed(2);
       if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = formattedBalance;
       if(document.getElementById('prof-balance')) document.getElementById('prof-balance').innerText = "₹" + formattedBalance;
+      localStorage.setItem('my77play_balance', String(userRow.balance || 0));
 
       // 4. लाइव गेम्स लॉक / अनलॉक लॉजिक
       handleGameLock('game-mine', userRow.lock_mine);
@@ -402,6 +408,7 @@
       handleGameLock('game-head-tail', userRow.lock_head_tail);
     }
 
+    // गेम्स लॉक / अनलॉक करने का हैंडलर
     function handleGameLock(elementId, isLocked) {
       const el = document.getElementById(elementId);
       if (!el) return;
@@ -414,10 +421,11 @@
       }
     }
 
-    // ⚡ एडवांस्ड रीयल-टाइम लिसनर (RLS डिसेबल होने पर भी 100% काम करेगा)
+    // ⚡ रीयल-टाइम लिसनर (बिना रीलोड तुरंत अपडेट)
     function listenToLiveUpdates(mobileNum, playerId) {
       if (!supabaseClient) initSupabase();
 
+      // नियम ३: सुनिश्चित करें कि मोबाइल नंबर नंबर फॉर्मेट में ही सिंक सुने
       const numMobile = Number(mobileNum);
 
       supabaseClient
@@ -425,14 +433,20 @@
         .on('postgres_changes', { 
             event: 'UPDATE', 
             schema: 'public', 
-            table: 'users'
-            // बिना फ़िल्टर के टेबल ब्रॉडकास्ट सुना ताकि RLS ऑफ होने पर भी डेटा आए
+            table: 'users',
+            filter: `mobile=eq.${numMobile}` 
         }, (payload) => {
-            // कोड के अंदर ही चेक किया कि बदला हुआ डेटा इसी यूजर का है या नहीं
-            if (Number(payload.new.mobile) === numMobile || payload.new.player_id === playerId) {
-                console.log('Live update received for current user:', payload.new);
-                updateUI(payload.new);
-            }
+            console.log('Live update captured via mobile:', payload.new);
+            updateUI(payload.new);
+        })
+        .on('postgres_changes', { 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'users',
+            filter: `player_id=eq.${playerId}` 
+        }, (payload) => {
+            console.log('Live update captured via player_id:', payload.new);
+            updateUI(payload.new);
         })
         .subscribe();
     }
@@ -456,6 +470,7 @@
       localStorage.removeItem('my77play_user');
       localStorage.removeItem('my77play_id');
       localStorage.removeItem('my77play_name');
+      localStorage.removeItem('my77play_balance');
       window.location.href = 'index.html';
     }
   </script>
