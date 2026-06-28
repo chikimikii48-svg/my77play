@@ -448,32 +448,47 @@ localStorage.setItem('my77play_id', userData.player_id || '');
       }
     }
 
-    // ⚡ रीयल-टाइम लिसनर (टेबल में बदलाव होते ही बिना रीलोड तुरंत स्क्रीन अपडेट)
+     // ⚡ बिल्कुल नया डायरेक्ट ब्रॉडकास्ट लिसनर (बिना फिल्टर के तुरंत लाइव अपडेट)
     function listenToLiveUpdates(mobileNum, playerId) {
       if (!supabaseClient) initSupabase();
 
-      // नियम ३: सुनिश्चित करें कि मोबाइल नंबर नंबर फॉर्मेट में ही सिंक सुने
       const numMobile = Number(mobileNum);
 
       supabaseClient
-        .channel('public:users')
+        .channel('schema-db-changes')
         .on('postgres_changes', { 
-            event: 'UPDATE', 
+            event: '*', 
             schema: 'public', 
-            table: 'users',
-            filter: `mobile=eq.${numMobile}` 
+            table: 'users' 
         }, (payload) => {
-            console.log('Live update captured via mobile:', payload.new);
-            updateUI(payload.new);
-        })
-        .on('postgres_changes', { 
-            event: 'UPDATE', 
-            schema: 'public', 
-            table: 'users',
-            filter: `player_id=eq.${playerId}` 
-        }, (payload) => {
-            console.log('Live update captured via player_id:', payload.new);
-            updateUI(payload.new);
+            console.log('Realtime payload:', payload);
+            
+            // टेबल में जो रो बदली है, उसे निकालें
+            const changedRow = payload.new || payload.old;
+            
+            if (changedRow) {
+                // नियम ३: डेटा टाइप को शुद्ध नंबर में मैच करना
+                const changedMobile = Number(changedRow.mobile);
+                
+                if (changedMobile === numMobile || changedRow.player_id === playerId) {
+                    
+                    // 🔔 रीचार्ज सक्सेसफुल मैसेज लॉजिक
+                    const oldBalance = parseFloat(localStorage.getItem('my77play_balance') || '0');
+                    const newBalance = parseFloat(changedRow.balance || '0');
+                    
+                    if (newBalance > oldBalance) {
+                        const alertBox = document.getElementById('live-recharge-box');
+                        if (alertBox) {
+                            alertBox.innerText = "recharge successfully! 🎉";
+                            alertBox.style.display = 'block';
+                            setTimeout(() => { alertBox.style.display = 'none'; }, 5000); // 5 सेकंड बाद गायब
+                        }
+                    }
+
+                    console.log('Live Match! UI Updated instantly.');
+                    updateUI(changedRow);
+                }
+            }
         })
         .subscribe();
     }
