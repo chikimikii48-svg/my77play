@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>my77play - Dashboard</title>
-  <!-- 1. Sabase Pehle Supabase Framework Library Load Karein -->
+  <!-- 100% Working Official Supabase Framework Bundle -->
   <script src="https://jsdelivr.net"></script>
   <style>
     :root {
@@ -14,6 +14,7 @@
       --primary-glow: rgba(0, 255, 204, 0.3);
       --text-color: #ffffff;
       --text-muted: #8e8e93;
+      --error-color: #ff3b30;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
@@ -26,6 +27,52 @@
       justify-content: center;
     }
 
+    /* 📱 बॉटम नेविगेशन बार और वीआईपी प्रोफाइल स्क्रीन का डिज़ाइन */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 385px;
+      background: #11111f; display: flex; justify-content: space-around;
+      padding: 12px 0; border-top: 1px solid rgba(0, 255, 204, 0.15); z-index: 999;
+    }
+    .nav-btn {
+      background: none; border: none; color: #8e8e93; font-size: 0.9rem;
+      font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .nav-btn.active { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
+
+    .profile-screen-wrapper {
+      display: none; position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 385px; height: 100vh;
+      background: #0f0f1a; padding: 20px; padding-bottom: 80px; z-index: 998; overflow-y: auto;
+    }
+    .profile-screen-wrapper.active { display: block; }
+
+    .vip-avatar {
+      width: 80px; height: 80px; background: radial-gradient(#00ffcc, #004433);
+      border-radius: 50%; margin: 20px auto; display: flex; justify-content: center;
+      align-items: center; font-size: 2rem; font-weight: 900; color: #000; box-shadow: 0 0 20px rgba(0,255,204,0.3);
+    }
+    .profile-card-box {
+      background: #1c1c27; border-radius: 16px; padding: 20px;
+      border: 1px solid rgba(255,255,255,0.03); margin-bottom: 20px;
+    }
+    .profile-card-row {
+      display: flex; justify-content: space-between; padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 1rem;
+    }
+    .profile-card-row:last-child { border-bottom: none; }
+    .profile-card-row span:first-child { color: #8e8e93; }
+    .profile-card-row span:last-child { color: #fff; font-weight: bold; }
+
+    .action-grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .prof-action-btn {
+      padding: 14px; border: none; border-radius: 10px; font-weight: bold;
+      font-size: 0.95rem; text-transform: uppercase; cursor: pointer; text-align: center; text-decoration: none;
+    }
+    .btn-dep { background: #00ffcc; color: #000; box-shadow: 0 4px 12px rgba(0,255,204,0.2); }
+    .btn-wit { background: #ff0055; color: #fff; box-shadow: 0 4px 12px rgba(255,0,85,0.2); }
+    .btn-log { width: 100%; background: #222; color: #ff4d4d; border: 1px solid #333; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+      
+    /* 📱 मोबाइल फ्रेम - सुंदर छोटा फिट कसीनो साइज */
     .app-wrapper {
       width: 100%;
       max-width: 385px; 
@@ -36,7 +83,7 @@
       box-shadow: 0 0 30px rgba(0,0,0,0.8);
     }
 
-    /* 2. Top Header Layout jahan ID dikhegi */
+    /* प्रीमियम हेडर - सबसे ऊपर आईडी दिखाने के लिए */
     header {
       background: var(--card-bg);
       padding: 15px 20px;
@@ -68,34 +115,130 @@
     }
 
     .main-content { padding: 15px; }
+
+    /* 🪙 वॉलेट बैलेंस कार्ड */
+    .wallet-card {
+      background: linear-gradient(135deg, #1e1e30 0%, #11111a 100%);
+      border: 1px solid rgba(0, 255, 204, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      margin-bottom: 25px;
+    }
+
+    .wallet-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .wallet-balance { font-size: 2.3rem; font-weight: 800; color: var(--primary-color); text-shadow: 0 0 15px var(--primary-glow); }
+
+    /* गेम्स ग्रिड टाइटल */
+    .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: ''; display: inline-block; width: 4px; height: 16px; background: var(--primary-color); border-radius: 2px; }
+
+    .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+    /* 🎮 कसीनो गेम कार्ड - हाइट 115px छोटा और फिट साइज */
+    .game-card {
+      position: relative; border-radius: 14px; text-decoration: none; color: #fff;
+      display: flex; flex-direction: column; justify-content: flex-end; height: 115px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3); transition: transform 0.2s; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+    }
+    .game-card:active { transform: scale(0.97); }
+
+    /* 100% वर्किंग लाइव कसीनो बैकग्राउंड सुंदर गेम पिक्सल्स */
+    #game-mine { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
+    #game-wingo { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
+    #game-slot { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
+    #game-head-tail { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
+
+    .game-info-box { padding: 12px; width: 100%; }
+    .game-name { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .game-status { font-size: 0.7rem; color: var(--primary-color); margin-top: 3px; display: block; font-weight: bold; }
+
+    /* 🔒 लॉक ओवरले स्टाइल */
+    .game-card.locked { filter: grayscale(1); opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+    .game-card.locked::after { content: '🔒 LOCKED'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; font-size: 1rem; font-weight: 900; color: #ff3b30; }
+
+    /* Custom Animation Toast Style */
+    .custom-alert {
+      position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 350px; background: #11111f; border: 2px solid #00ffcc;
+      border-radius: 12px; padding: 15px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,255,204,0.3);
+      display: flex; flex-direction: column; gap: 5px; transition: top 0.5s ease-in-out;
+    }
+    .custom-alert.show { top: 20px; }
+    .alert-title { color: #00ffcc; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; }
+    .alert-msg { color: #fff; font-size: 0.95rem; }
   </style>
 </head>
 <body>
 
+  <!-- Dynamic Success Alert Component -->
+  <div id="recharge-alert" class="custom-alert">
+    <div class="alert-title">💰 Recharge Successful!</div>
+    <div id="recharge-alert-msg" class="alert-msg">Aapki id par ₹0 ka recharge successfully ho gya hai.</div>
+  </div>
+
   <div class="app-wrapper">
-    <!-- Top Premium Header Section -->
+    <!-- Header Content displaying ID dynamic -->
     <header>
       <div class="brand-title">MY77PLAY</div>
-      <!-- Yahan database se load hokar real User ID dikhegi -->
       <div class="top-user-id" id="display-top-uid">ID: Loading...</div>
     </header>
 
     <div class="main-content">
-      <p style="color: var(--text-muted); text-align: center; margin-top: 50px;">
-        Step 1: ID Configuration System Active.
-      </p>
-    </div>
-  </div>
+      <!-- 🪙 वॉलेट बैलेंस कार्ड -->
+      <div class="wallet-card">
+        <div class="wallet-title">Wallet Balance</div>
+        <div class="wallet-balance">₹<span id="display-wallet-balance">0.00</span></div>
+      </div>
 
-  <script>
-    // Supabase Initialization Logic
+      <!-- गेम्स ग्रिड -->
+      <div class="section-title">Popular Games</div>
+      <div class="games-grid">
+        
+        <!-- Game 1: Mines -->
+        <a href="mine_game.html" class="game-card" id="game-mine">
+          <div class="game-info-box">
+            <span class="game-name">Mines</span>
+            <span class="game-status">Live Play</span>
+          </div>
+        </a>
+
+        <!-- Game 2: Wingo -->
+        <a href="wingo_game.html" class="game-card" id="game-wingo">
+          <div class="game-info-box">
+            <span class="game-name">Wingo</span>
+            <span class="game-status">Live Play</span>
+          </div>
+        </a>
+
+        <!-- Game 3: Slot -->
+        <a href="casino_slot.html" class="game-card" id="game-slot">
+          <div class="game-info-box">
+            <span class="game-name">Slots</span>
+            <span class="game-status">Live Play</span>
+          </div>
+        </a>
+
+        <!-- Game 4: Head & Tail -->
+        <a href="head_tail.html" class="game-card" id="game-head-tail">
+          <div class="game-info-box">
+            <span class="game-name">Head & Tail</span>
+            <span class="game-status">Live Play</span>
+          </div>
+        </a>
+<script>
+    // Supabase Connection Settings
     const SUPABASE_URL = "https://supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE";
 
+    // Create Supabase Client Instance
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    let localCurrentBalance = null;
+    let balanceCheckInterval = null;
+
     window.addEventListener('DOMContentLoaded', async () => {
-      // Login mobile check karein
       const loggedMobile = localStorage.getItem('user_mobile') || sessionStorage.getItem('user_mobile');
       
       if (!loggedMobile) {
@@ -103,23 +246,106 @@
         return;
       }
 
+      // Initial Fetch on startup
+      await fetchUserData(loggedMobile);
+
+      // TURANT HAR 1 SEC (1000ms) AUTO REFRESH LOOP SYSTEM
+      balanceCheckInterval = setInterval(() => {
+        fetchUserData(loggedMobile);
+      }, 1000);
+    });
+
+    async function fetchUserData(mobileNum) {
       try {
-        // Users table se player_id nikalne ka code
         const { data, error } = await supabaseClient
           .from('users')
-          .select('player_id')
-          .eq('mobile', mobileNum) // mobile filter
+          .select('*')
+          .eq('mobile', mobileNum)
           .single();
 
         if (error) throw error;
 
         if (data) {
-          // Screen par ID set karna
+          if (data.is_blocked === true) {
+            alert("Aapka account block kar diya gaya hai!");
+            handleLogout();
+            return;
+          }
+
+          // Header ID aur Balance live change update
           document.getElementById('display-top-uid').innerText = "ID: " + data.player_id;
+          document.getElementById('display-wallet-balance').innerText = parseFloat(data.balance).toFixed(2);
+          
+          // Profile section live values update
+          document.getElementById('prof-name').innerText = data.name || "N/A";
+          document.getElementById('prof-id').innerText = data.player_id;
+          document.getElementById('prof-mobile').innerText = data.mobile;
+          document.getElementById('prof-balance').innerText = parseFloat(data.balance).toFixed(2);
+
+          // Game Block Locks status mapping
+          toggleGameLock('game-mine', data.lock_mine);
+          toggleGameLock('game-wingo', data.lock_wingo);
+          toggleGameLock('game-slot', data.lock_slot);
+          toggleGameLock('game-head-tail', data.lock_head_tail);
+
+          // 💰 RECHARGE SUCCESSFULLY ALERT TRIGGER LOGIC
+          const databaseBalance = parseFloat(data.balance);
+          if (localCurrentBalance !== null && databaseBalance > localCurrentBalance) {
+            const depositAmount = databaseBalance - localCurrentBalance;
+            showRechargeAlert(depositAmount);
+          }
+          localCurrentBalance = databaseBalance;
         }
       } catch (err) {
-        console.error("ID fetch error:", err.message);
-        document.getElementById('display-top-uid').innerText = "ID: Error";
+        console.error("Database connectivity error:", err.message);
+      }
+    }
+
+    function toggleGameLock(elementId, isLocked) {
+      const gameCard = document.getElementById(elementId);
+      if (!gameCard) return;
+      if (isLocked === true) {
+        gameCard.classList.add('locked');
+      } else {
+        gameCard.classList.remove('locked');
+      }
+    }
+
+    function showRechargeAlert(amount) {
+      const alertBox = document.getElementById('recharge-alert');
+      const alertMsg = document.getElementById('recharge-alert-msg');
+      alertMsg.innerText = `Aapki id par ₹${amount.toFixed(2)} ka recharge successfully ho gya hai.`;
+      alertBox.classList.add('show');
+      setTimeout(() => { alertBox.classList.remove('show'); }, 4000);
+    }
+
+    // Tabs / Profile Screen Toggle Navigation Logic
+    function switchTab(tabName) {
+      const profileOverlay = document.getElementById('profile-overlay');
+      const homeBtn = document.getElementById('nav-home-btn');
+      const profileBtn = document.getElementById('nav-profile-btn');
+
+      if (tabName === 'home') {
+        profileOverlay.classList.remove('active');
+        profileBtn.classList.remove('active');
+        homeBtn.classList.add('active');
+      } else if (tabName === 'profile') {
+        profileOverlay.classList.add('active');
+        homeBtn.classList.remove('active');
+        profileBtn.classList.add('active');
+      }
+    }
+
+    function handleLogout() {
+      if (balanceCheckInterval) clearInterval(balanceCheckInterval);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      if (confirm("Kya aap account logout karna chahte hain?")) {
+        handleLogout();
       }
     });
   </script>
