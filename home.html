@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net; img-src * data: blob: 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://unpkg.com; img-src * data: blob: 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>my77play - Dashboard</title>
   <!-- Supabase JS Library -->
-  <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg-color: #09090e;
@@ -500,6 +500,8 @@ localStorage.setItem('my77play_id', userData.player_id || '');
       localStorage.removeItem('my77play_balance');
       window.location.href = 'index.html';
     }
+  }
+
 // ⚡ Loop Engine (Har 500 millisecond yani aadhe second me automatic check karega)
 const loggedMobile = localStorage.getItem('my77play_user');
 let currentBalance = Number(localStorage.getItem('my77play_balance')) || 0;
@@ -540,8 +542,8 @@ if (loggedMobile) {
             currentBalance = newBalance;
             localStorage.setItem('my77play_balance', String(newBalance));
         }
-    }, 500); // 500ms = Aadhe second me super fast auto-refresh
-}
+     }, 500); // 500ms = Aadhe second me super fast auto-refresh
+  }
 
   </script>
 </body>
