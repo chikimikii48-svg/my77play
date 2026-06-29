@@ -492,7 +492,7 @@ localStorage.setItem('my77play_id', userData.player_id || '');
       }
     }
 
-    // लॉग आउट लॉजिक
+// लॉग आउट लॉजिक
     function handleLogout() {
       localStorage.removeItem('my77play_user');
       localStorage.removeItem('my77play_id');
@@ -500,6 +500,15 @@ localStorage.setItem('my77play_id', userData.player_id || '');
       localStorage.removeItem('my77play_balance');
       window.location.href = 'index.html';
     }
+
+    // 🔥 1-SEC TURANT UPDATE LOOPE ENGINE (YAHAN JODNA HAI)
+    const loggedMobile = localStorage.getItem('my77play_user');
+    if (loggedMobile) {
+      setInterval(() => {
+        fetchUserData(loggedMobile);
+      }, 1000);
+    }
+
   </script>
 </body>
 </html>
