@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>my77play - Dashboard</title>
-  <!-- 100% Working Official Supabase Framework Bundle -->
+  <!-- Official Working Supabase JS Library -->
   <script src="https://jsdelivr.net"></script>
   <style>
     :root {
@@ -158,7 +158,7 @@
     .game-card.locked { filter: grayscale(1); opacity: 0.4; cursor: not-allowed; pointer-events: none; }
     .game-card.locked::after { content: '🔒 LOCKED'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; font-size: 1rem; font-weight: 900; color: #ff3b30; }
 
-    /* Custom Animation Toast Style */
+    /* Recharge Alert Style */
     .custom-alert {
       position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
       width: 90%; max-width: 350px; background: #11111f; border: 2px solid #00ffcc;
@@ -172,14 +172,14 @@
 </head>
 <body>
 
-  <!-- Dynamic Success Alert Component -->
+  <!-- Dynamic Recharge Successful Popup Alert -->
   <div id="recharge-alert" class="custom-alert">
     <div class="alert-title">💰 Recharge Successful!</div>
     <div id="recharge-alert-msg" class="alert-msg">Aapki id par ₹0 ka recharge successfully ho gya hai.</div>
   </div>
 
   <div class="app-wrapper">
-    <!-- Header Content displaying ID dynamic -->
+    <!-- प्रीमियम हेडर -->
     <header>
       <div class="brand-title">MY77PLAY</div>
       <div class="top-user-id" id="display-top-uid">ID: Loading...</div>
@@ -227,127 +227,3 @@
             <span class="game-status">Live Play</span>
           </div>
         </a>
-<script>
-    // Supabase Connection Settings
-    const SUPABASE_URL = "https://supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE";
-
-    // Create Supabase Client Instance
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let localCurrentBalance = null;
-    let balanceCheckInterval = null;
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      const loggedMobile = localStorage.getItem('user_mobile') || sessionStorage.getItem('user_mobile');
-      
-      if (!loggedMobile) {
-        window.location.href = 'index.html';
-        return;
-      }
-
-      // Initial Fetch on startup
-      await fetchUserData(loggedMobile);
-
-      // TURANT HAR 1 SEC (1000ms) AUTO REFRESH LOOP SYSTEM
-      balanceCheckInterval = setInterval(() => {
-        fetchUserData(loggedMobile);
-      }, 1000);
-    });
-
-    async function fetchUserData(mobileNum) {
-      try {
-        const { data, error } = await supabaseClient
-          .from('users')
-          .select('*')
-          .eq('mobile', mobileNum)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          if (data.is_blocked === true) {
-            alert("Aapka account block kar diya gaya hai!");
-            handleLogout();
-            return;
-          }
-
-          // Header ID aur Balance live change update
-          document.getElementById('display-top-uid').innerText = "ID: " + data.player_id;
-          document.getElementById('display-wallet-balance').innerText = parseFloat(data.balance).toFixed(2);
-          
-          // Profile section live values update
-          document.getElementById('prof-name').innerText = data.name || "N/A";
-          document.getElementById('prof-id').innerText = data.player_id;
-          document.getElementById('prof-mobile').innerText = data.mobile;
-          document.getElementById('prof-balance').innerText = parseFloat(data.balance).toFixed(2);
-
-          // Game Block Locks status mapping
-          toggleGameLock('game-mine', data.lock_mine);
-          toggleGameLock('game-wingo', data.lock_wingo);
-          toggleGameLock('game-slot', data.lock_slot);
-          toggleGameLock('game-head-tail', data.lock_head_tail);
-
-          // 💰 RECHARGE SUCCESSFULLY ALERT TRIGGER LOGIC
-          const databaseBalance = parseFloat(data.balance);
-          if (localCurrentBalance !== null && databaseBalance > localCurrentBalance) {
-            const depositAmount = databaseBalance - localCurrentBalance;
-            showRechargeAlert(depositAmount);
-          }
-          localCurrentBalance = databaseBalance;
-        }
-      } catch (err) {
-        console.error("Database connectivity error:", err.message);
-      }
-    }
-
-    function toggleGameLock(elementId, isLocked) {
-      const gameCard = document.getElementById(elementId);
-      if (!gameCard) return;
-      if (isLocked === true) {
-        gameCard.classList.add('locked');
-      } else {
-        gameCard.classList.remove('locked');
-      }
-    }
-
-    function showRechargeAlert(amount) {
-      const alertBox = document.getElementById('recharge-alert');
-      const alertMsg = document.getElementById('recharge-alert-msg');
-      alertMsg.innerText = `Aapki id par ₹${amount.toFixed(2)} ka recharge successfully ho gya hai.`;
-      alertBox.classList.add('show');
-      setTimeout(() => { alertBox.classList.remove('show'); }, 4000);
-    }
-
-    // Tabs / Profile Screen Toggle Navigation Logic
-    function switchTab(tabName) {
-      const profileOverlay = document.getElementById('profile-overlay');
-      const homeBtn = document.getElementById('nav-home-btn');
-      const profileBtn = document.getElementById('nav-profile-btn');
-
-      if (tabName === 'home') {
-        profileOverlay.classList.remove('active');
-        profileBtn.classList.remove('active');
-        homeBtn.classList.add('active');
-      } else if (tabName === 'profile') {
-        profileOverlay.classList.add('active');
-        homeBtn.classList.remove('active');
-        profileBtn.classList.add('active');
-      }
-    }
-
-    function handleLogout() {
-      if (balanceCheckInterval) clearInterval(balanceCheckInterval);
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = 'index.html';
-    }
-
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      if (confirm("Kya aap account logout karna chahte hain?")) {
-        handleLogout();
-      }
-    });
-  </script>
-</body>
-</html>
