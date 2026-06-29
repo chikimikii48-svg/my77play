@@ -500,14 +500,48 @@ localStorage.setItem('my77play_id', userData.player_id || '');
       localStorage.removeItem('my77play_balance');
       window.location.href = 'index.html';
     }
+// ⚡ Loop Engine (Har 500 millisecond yani aadhe second me automatic check karega)
+const loggedMobile = localStorage.getItem('my77play_user');
+let currentBalance = Number(localStorage.getItem('my77play_balance')) || 0;
 
-    // 🔥 1-SEC TURANT UPDATE LOOPE ENGINE (YAHAN JODNA HAI)
-    const loggedMobile = localStorage.getItem('my77play_user');
-    if (loggedMobile) {
-      setInterval(() => {
-        fetchUserData(loggedMobile);
-      }, 1000);
-    }
+if (loggedMobile) {
+    setInterval(async () => {
+        if (!supabaseClient) return;
+        
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('mobile', loggedMobile)
+            .maybeSingle();
+            
+        if (data) {
+            const newBalance = Number(data.balance) || 0;
+            
+            // Agar database me balance badh gaya hai
+            if (newBalance > currentBalance) {
+                const addedAmount = newBalance - currentBalance;
+                
+                // Pura UI automatic update karo
+                if (typeof updateUI === 'function') updateUI(data);
+                
+                // Recharge successful ka popup dikhao
+                const popup = document.getElementById('recharge-popup');
+                const msg = document.getElementById('popup-message');
+                if (popup && msg) {
+                    msg.innerText = `Aapki ID me ₹${addedAmount.toFixed(2)} ka recharge successfully ho gya hai!`;
+                    popup.style.display = 'block';
+                    setTimeout(() => { popup.style.display = 'none'; }, 4000);
+                }
+            } else if (newBalance !== currentBalance) {
+                // Agar balance kam hua hai, toh bina popup ke sirf UI update karo
+                if (typeof updateUI === 'function') updateUI(data);
+            }
+            
+            currentBalance = newBalance;
+            localStorage.setItem('my77play_balance', String(newBalance));
+        }
+    }, 500); // 500ms = Aadhe second me super fast auto-refresh
+}
 
   </script>
 </body>
