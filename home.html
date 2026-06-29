@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.supabase.co https://jsdelivr.net; img-src * data: blob: 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>my77play - Dashboard</title>
-  <!-- Official Working Supabase JS Library -->
-  <script src="https://jsdelivr.net"></script>
+  <!-- Supabase JS Library -->
+  <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg-color: #09090e;
@@ -27,55 +28,10 @@
       justify-content: center;
     }
 
-    /* 📱 बॉटम नेविगेशन बार और वीआईपी प्रोफाइल स्क्रीन का डिज़ाइन */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 385px;
-      background: #11111f; display: flex; justify-content: space-around;
-      padding: 12px 0; border-top: 1px solid rgba(0, 255, 204, 0.15); z-index: 999;
-    }
-    .nav-btn {
-      background: none; border: none; color: #8e8e93; font-size: 0.9rem;
-      font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
-    }
-    .nav-btn.active { color: #00ffcc; text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
-
-    .profile-screen-wrapper {
-      display: none; position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 385px; height: 100vh;
-      background: #0f0f1a; padding: 20px; padding-bottom: 80px; z-index: 998; overflow-y: auto;
-    }
-    .profile-screen-wrapper.active { display: block; }
-
-    .vip-avatar {
-      width: 80px; height: 80px; background: radial-gradient(#00ffcc, #004433);
-      border-radius: 50%; margin: 20px auto; display: flex; justify-content: center;
-      align-items: center; font-size: 2rem; font-weight: 900; color: #000; box-shadow: 0 0 20px rgba(0,255,204,0.3);
-    }
-    .profile-card-box {
-      background: #1c1c27; border-radius: 16px; padding: 20px;
-      border: 1px solid rgba(255,255,255,0.03); margin-bottom: 20px;
-    }
-    .profile-card-row {
-      display: flex; justify-content: space-between; padding: 12px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 1rem;
-    }
-    .profile-card-row:last-child { border-bottom: none; }
-    .profile-card-row span:first-child { color: #8e8e93; }
-    .profile-card-row span:last-child { color: #fff; font-weight: bold; }
-
-    .action-grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-    .prof-action-btn {
-      padding: 14px; border: none; border-radius: 10px; font-weight: bold;
-      font-size: 0.95rem; text-transform: uppercase; cursor: pointer; text-align: center; text-decoration: none;
-    }
-    .btn-dep { background: #00ffcc; color: #000; box-shadow: 0 4px 12px rgba(0,255,204,0.2); }
-    .btn-wit { background: #ff0055; color: #fff; box-shadow: 0 4px 12px rgba(255,0,85,0.2); }
-    .btn-log { width: 100%; background: #222; color: #ff4d4d; border: 1px solid #333; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-      
-    /* 📱 मोबाइल फ्रेम - सुंदर छोटा फिट कसीनो साइज */
+    /* 📱 मोबाइल फ्रेम - पहले जैसा बड़ा प्रीमियम रूप */
     .app-wrapper {
       width: 100%;
-      max-width: 385px; 
+      max-width: 385px;
       min-height: 100vh;
       background: var(--bg-color);
       position: relative;
@@ -115,6 +71,8 @@
     }
 
     .main-content { padding: 15px; }
+    .page-section { display: none; }
+    .page-section.active { display: block; }
 
     /* 🪙 वॉलेट बैलेंस कार्ड */
     .wallet-card {
@@ -127,103 +85,421 @@
       margin-bottom: 25px;
     }
 
-    .wallet-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-    .wallet-balance { font-size: 2.3rem; font-weight: 800; color: var(--primary-color); text-shadow: 0 0 15px var(--primary-glow); }
+    .wallet-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+
+    .wallet-balance {
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-shadow: 0 0 15px var(--primary-glow);
+    }
 
     /* गेम्स ग्रिड टाइटल */
-    .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
-    .section-title::before { content: ''; display: inline-block; width: 4px; height: 16px; background: var(--primary-color); border-radius: 2px; }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
 
-    .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-
-    /* 🎮 कसीनो गेम कार्ड - हाइट 115px छोटा और फिट साइज */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+/* 🎮 बड़ा और असली फोटो बैकग्राउंड गेम कार्ड लुक */
     .game-card {
-      position: relative; border-radius: 14px; text-decoration: none; color: #fff;
-      display: flex; flex-direction: column; justify-content: flex-end; height: 115px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.3); transition: transform 0.2s; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+      border-radius: 14px;
+      text-decoration: none;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      height: 115px; /* पहले जैसी बड़ी हाइट */
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
     }
     .game-card:active { transform: scale(0.97); }
 
-    /* 100% वर्किंग लाइव कसीनो बैकग्राउंड सुंदर गेम पिक्सल्स */
-    #game-mine { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
-    #game-wingo { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
-    #game-slot { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
-    #game-head-tail { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://unsplash.com') center/cover; }
+    /* असली गेम बैकग्राउंड पिक्चर्स */
+    #game-mine { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://ibb.co') center/cover; }
+    #game-wingo { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://ibb.co') center/cover; }
+    #game-slot { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://ibb.co') center/cover; }
+    #game-head-tail { background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.1)), url('https://ibb.co') center/cover; }
 
     .game-info-box { padding: 12px; width: 100%; }
     .game-name { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     .game-status { font-size: 0.7rem; color: var(--primary-color); margin-top: 3px; display: block; font-weight: bold; }
 
     /* 🔒 लॉक ओवरले स्टाइल */
-    .game-card.locked { filter: grayscale(1); opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-    .game-card.locked::after { content: '🔒 LOCKED'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; font-size: 1rem; font-weight: 900; color: #ff3b30; }
-
-    /* Recharge Alert Style */
-    .custom-alert {
-      position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-      width: 90%; max-width: 350px; background: #11111f; border: 2px solid #00ffcc;
-      border-radius: 12px; padding: 15px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,255,204,0.3);
-      display: flex; flex-direction: column; gap: 5px; transition: top 0.5s ease-in-out;
+    .game-card.locked { filter: grayscale(1); opacity: 0.4; cursor: not-allowed; }
+    .game-card.locked::after {
+      content: '🔒 LOCKED';
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; font-weight: 900; color: #ff3b30;
     }
-    .custom-alert.show { top: 20px; }
-    .alert-title { color: #00ffcc; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; }
-    .alert-msg { color: #fff; font-size: 0.95rem; }
+
+    /* 👤 प्रोफाइल डिजाइन */
+    .profile-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .profile-header-box { text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+    .profile-avatar { width: 65px; height: 65px; background: var(--primary-color); color: #000; font-size: 2rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; margin-bottom: 10px; box-shadow: 0 0 15px var(--primary-glow); }
+    
+    .profile-item { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.95rem; }
+    .profile-item span:first-child { color: var(--text-muted); }
+    .profile-item span:last-child { color: #fff; font-weight: 600; }
+
+    .profile-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .action-btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; text-transform: uppercase; text-decoration: none; text-align: center; display: inline-block; }
+    .btn-recharge { background: var(--primary-color); color: #000; box-shadow: 0 4px 12px var(--primary-glow); }
+    .btn-withdraw { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+    
+    .logout-btn { background: #ff3b30; color: #fff; border: none; width: 100%; margin-top: 20px; padding: 14px; border-radius: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+
+    /* 🏠👤 बॉटम फिक्स नेविगेशन बटन्स */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #11111a;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      z-index: 100;
+    }
+    .nav-item {
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      width: 45%;
+    }
+    .nav-item.active { color: var(--primary-color); }
+    .nav-icon { font-size: 1.3rem; }
+
+    /* 🚫 फुल स्क्रीन ब्लॉक स्क्रीन ओवरले */
+    #block-screen {
+      position: fixed; top:0; left:0; width:100vw; height:100vh;
+      background: #09090e; color: var(--error-color); z-index: 99999;
+      display: none; flex-direction: column; justify-content: center;
+      align-items: center; text-align: center; padding: 25px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Dynamic Recharge Successful Popup Alert -->
-  <div id="recharge-alert" class="custom-alert">
-    <div class="alert-title">💰 Recharge Successful!</div>
-    <div id="recharge-alert-msg" class="alert-msg">Aapki id par ₹0 ka recharge successfully ho gya hai.</div>
-  </div>
-
   <div class="app-wrapper">
-    <!-- प्रीमियम हेडर -->
+    
+    <!-- 🚫 ब्लॉक स्क्रीन ओवरले -->
+    <div id="block-screen">
+      <span style="font-size: 4rem;">🚫</span>
+      <h1 style="margin: 15px 0 5px 0; font-size: 1.5rem; font-weight: 900; text-align: center;">
+        Aapki ID temporary block kar di gayi hai.<br>Your ID is blocked!
+      </h1>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 15px;">Assistance ke liye support team se baat karein.</p>
+    </div>
+
+    <!-- हेडर (सबसे ऊपर यूजर आईडी दिखाने के लिए) -->
     <header>
       <div class="brand-title">MY77PLAY</div>
-      <div class="top-user-id" id="display-top-uid">ID: Loading...</div>
+      <div class="top-user-id" id="display-player-id">ID: Loading...</div>
     </header>
 
     <div class="main-content">
-      <!-- 🪙 वॉलेट बैलेंस कार्ड -->
-      <div class="wallet-card">
-        <div class="wallet-title">Wallet Balance</div>
-        <div class="wallet-balance">₹<span id="display-wallet-balance">0.00</span></div>
+      
+      <!-- ================= HOME SECTION ================= -->
+      <div id="home-section" class="page-section active">
+        <!-- वॉलेट बैलेंस कार्ड -->
+        <div class="wallet-card">
+          <div class="wallet-title">Wallet Balance</div>
+          <div class="wallet-balance">₹<span id="display-balance">0.00</span></div>
+        </div>
+
+        <div class="section-title">Popular Games</div>
+        <div class="games-grid">
+          
+          <!-- 1. माइंस गेम -->
+          <a href="mine_game.html" id="game-mine" class="game-card">
+            <div class="game-info-box">
+              <p class="game-name">Mines</p>
+              <span class="game-status">💣 Bomb Craft</span>
+            </div>
+          </a>
+
+          <!-- 2. विंगो गेम -->
+          <a href="wingo_game.html" id="game-wingo" class="game-card">
+            <div class="game-info-box">
+              <p class="game-name">WinGo</p>
+              <span class="game-status">🎨 Color Predict</span>
+            </div>
+          </a>
+
+          <!-- 3. कसीनो स्लॉट्स गेम -->
+          <a href="casino_slot.html" id="game-slot" class="game-card">
+            <div class="game-info-box">
+              <p class="game-name">Slots</p>
+              <span class="game-status">🎰 Casino Slots</span>
+            </div>
+          </a>
+
+          <!-- 4. हेड एंड टेल गेम -->
+          <a href="head_tail.html" id="game-head-tail" class="game-card">
+            <div class="game-info-box">
+              <p class="game-name">Head & Tail</p>
+              <span class="game-status">🪙 Coin Flip</span>
+            </div>
+          </a>
+
+        </div>
       </div>
 
-      <!-- गेम्स ग्रिड -->
-      <div class="section-title">Popular Games</div>
-      <div class="games-grid">
-        
-        <!-- Game 1: Mines -->
-        <a href="mine_game.html" class="game-card" id="game-mine">
-          <div class="game-info-box">
-            <span class="game-name">Mines</span>
-            <span class="game-status">Live Play</span>
+      <!-- ================= PROFILE SECTION ================= -->
+      <div id="profile-section" class="page-section">
+        <div class="profile-card">
+          <div class="profile-header-box">
+            <div class="profile-avatar" id="prof-avatar-letter">P</div>
+            <h2 style="margin:0; font-size:1.3rem;" id="prof-name">Player</h2>
           </div>
-        </a>
+          
+          <div class="profile-item"><span>Player ID</span><span id="prof-id">------</span></div>
+          <div class="profile-item"><span>Mobile Number</span><span id="prof-mobile">------</span></div>
+          <div class="profile-item"><span>Total Balance</span><span style="color: var(--primary-color);" id="prof-balance">₹0.00</span></div>
 
-        <!-- Game 2: Wingo -->
-        <a href="wingo_game.html" class="game-card" id="game-wingo">
-          <div class="game-info-box">
-            <span class="game-name">Wingo</span>
-            <span class="game-status">Live Play</span>
+          <div class="profile-actions">
+            <a href="recharge.html" class="action-btn btn-recharge">Recharge</a>
+            <a href="withdrawal.html" class="action-btn btn-withdraw">Withdraw</a>
           </div>
-        </a>
 
-        <!-- Game 3: Slot -->
-        <a href="casino_slot.html" class="game-card" id="game-slot">
-          <div class="game-info-box">
-            <span class="game-name">Slots</span>
-            <span class="game-status">Live Play</span>
-          </div>
-        </a>
+          <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+        </div>
+      </div>
 
-        <!-- Game 4: Head & Tail -->
-        <a href="head_tail.html" class="game-card" id="game-head-tail">
-          <div class="game-info-box">
-            <span class="game-name">Head & Tail</span>
-            <span class="game-status">Live Play</span>
-          </div>
-        </a>
+    </div> <!-- .main-content क्लोज -->
+
+    <div class="bottom-nav">
+      <button class="nav-item active" id="nav-home-btn" onclick="switchTab('home')">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" id="nav-profile-btn" onclick="switchTab('profile')">
+        <span class="nav-icon">👤</span>
+        <span>Profile</span>
+      </button>
+    </div>
+
+  </div> <!-- .app-wrapper क्लोज -->
+<script>
+    // 🛠️ Supabase Credentials (index.html से हूबहू लिए गए हैं)
+    const supabaseUrl = 'https://supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWp2Zmx1d2V6bWJyZnZ4bXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNTgwNjEsImV4cCI6MjA5NzczNDA2MX0.Gc8XqzrWKXmBtCDfPy9zB7R0sNdD9huccHzJyIMvMZE';
+    
+    let supabaseClient = null;
+    const rawMobile = localStorage.getItem('my77play_user');
+
+    // सुरक्षा चेक: अगर यूजर लॉगिन नहीं है, तो उसे तुरंत वापस लॉगिन पेज पर भेजें
+    if (!rawMobile) {
+      window.location.href = 'index.html';
+    }
+
+    // ⚡ नियम ३: लोकल स्टोरेज की String को तुरंत शुद्ध Number (int8) में बदलना अनिवार्य है ताकि रीयल-टाइम सिंक काम करे
+    const loggedInUserMobile = Number(rawMobile);
+
+    function initSupabase() {
+      try {
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+          supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        }
+      } catch(e) {
+        console.log("Supabase init error:", e);
+      }
+    }
+
+    window.onload = async function() {
+      initSupabase();
+      
+      // ⚡ लोकलस्टोरेज से पुराना डेटा तुरंत लोड करें ताकि पेज पर Loading... ना अटके (सुपरफास्ट स्पीड)
+      const localPlayerId = localStorage.getItem('my77play_id');
+      const localPlayerName = localStorage.getItem('my77play_name');
+      const localBalance = localStorage.getItem('my77play_balance') || '0.00';
+      
+      if (localPlayerId) {
+        if(document.getElementById('display-player-id')) document.getElementById('display-player-id').innerText = "ID: " + localPlayerId;
+        if(document.getElementById('prof-id')) document.getElementById('prof-id').innerText = localPlayerId;
+      } else {
+        const tempId = "User_" + String(rawMobile).substring(6);
+        if(document.getElementById('display-player-id')) document.getElementById('display-player-id').innerText = "ID: " + tempId;
+        if(document.getElementById('prof-id')) document.getElementById('prof-id').innerText = tempId;
+      }
+      
+      if (localPlayerName) {
+        if(document.getElementById('prof-name')) document.getElementById('prof-name').innerText = localPlayerName;
+        if(document.getElementById('prof-avatar-letter')) document.getElementById('prof-avatar-letter').innerText = localPlayerName.charAt(0).toUpperCase();
+      }
+      
+      if(document.getElementById('prof-mobile')) document.getElementById('prof-mobile').innerText = rawMobile;
+      
+      const formattedLocalBalance = parseFloat(localBalance).toFixed(2);
+      if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = formattedLocalBalance;
+      if(document.getElementById('prof-balance')) document.getElementById('prof-balance').innerText = "₹" + formattedLocalBalance;
+
+      // बैकग्राउंड में Supabase से ताजा लाइव डेटा लोड करें
+      if (supabaseClient) {
+        try {
+          const { data: userData, error } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('mobile', loggedInUserMobile)
+            .maybeSingle();
+
+          if (error) {
+            console.error("Supabase Loading Error:", error);
+            return;
+          }
+
+          if (userData) {
+            // UI को फ्रेश डेटा से अपडेट करें
+            updateUI(userData);
+            
+            // ⚡ रीयल-टाइम लिसनर चालू करें (शुद्ध नंबर मोबाइल और प्लेयर आईडी दोनों पर लॉक)
+            listenToLiveUpdates(userData.mobile, userData.player_id);
+            
+            // localStorage को नए ताज़ा...
+localStorage.setItem('my77play_id', userData.player_id || '');
+            localStorage.setItem('my77play_name', userData.name || '');
+            localStorage.setItem('my77play_balance', String(userData.balance || 0));
+          } else {
+            handleLogout();
+          }
+        } catch (err) {
+          console.log("Crash Error:", err);
+        }
+      }
+    };
+
+    // इंटरफ़ेस (UI) को अपडेट करने का मुख्य फंक्शन
+    function updateUI(userRow) {
+      // 1. तुरंत आईडी ब्लॉक / लॉक चेक (हिंदी और इंग्लिश ओवरले स्क्रीन)
+      if (userRow.is_blocked === true) {
+        if(document.getElementById('block-screen')) document.getElementById('block-screen').style.display = 'flex';
+        localStorage.clear();
+        return;
+      } else {
+        if(document.getElementById('block-screen')) document.getElementById('block-screen').style.display = 'none';
+      }
+
+      // 2. प्लेयर आईडी और नाम रेंडर करना
+      const pId = userRow.player_id || "------";
+      if(document.getElementById('display-player-id')) document.getElementById('display-player-id').innerText = "ID: " + pId;
+      if(document.getElementById('prof-id')) document.getElementById('prof-id').innerText = pId;
+      
+      const uName = userRow.name || "Player";
+      if(document.getElementById('prof-name')) document.getElementById('prof-name').innerText = uName;
+      if(document.getElementById('prof-avatar-letter')) document.getElementById('prof-avatar-letter').innerText = uName.charAt(0).toUpperCase();
+      if(document.getElementById('prof-mobile')) document.getElementById('prof-mobile').innerText = userRow.mobile || "------";
+
+      // 3. लाइव वॉलेट बैलेंस अपडेट (आपका पसंदीदा बिना रिफ्रेश लाइव लॉजिक)
+      const formattedBalance = parseFloat(userRow.balance || 0).toFixed(2);
+      if(document.getElementById('display-balance')) document.getElementById('display-balance').innerText = formattedBalance;
+      if(document.getElementById('prof-balance')) document.getElementById('prof-balance').innerText = "₹" + formattedBalance;
+      localStorage.setItem('my77play_balance', String(userRow.balance || 0));
+
+      // 4. लाइव गेम्स लॉक / अनलॉक लॉजिक
+      handleGameLock('game-mine', userRow.lock_mine);
+      handleGameLock('game-wingo', userRow.lock_wingo);
+      handleGameLock('game-slot', userRow.lock_slot);
+      handleGameLock('game-head-tail', userRow.lock_head_tail);
+    }
+
+    // गेम्स लॉक / अनलॉक करने का हैंडलर
+    function handleGameLock(elementId, isLocked) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      if (isLocked === true) {
+        el.classList.add('locked');
+        el.onclick = function(e) { e.preventDefault(); alert("Yeh game admin dwara lock kiya gaya hai!"); };
+      } else {
+        el.classList.remove('locked');
+        el.onclick = null;
+      }
+    }
+
+    // ⚡ रीयल-टाइम लिसनर (टेबल में बदलाव होते ही बिना रीलोड तुरंत स्क्रीन अपडेट)
+    function listenToLiveUpdates(mobileNum, playerId) {
+      if (!supabaseClient) initSupabase();
+
+      // नियम ३: सुनिश्चित करें कि मोबाइल नंबर नंबर फॉर्मेट में ही सिंक सुने
+      const numMobile = Number(mobileNum);
+
+      supabaseClient
+        .channel('public:users')
+        .on('postgres_changes', { 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'users',
+            filter: `mobile=eq.${numMobile}` 
+        }, (payload) => {
+            console.log('Live update captured via mobile:', payload.new);
+            updateUI(payload.new);
+        })
+        .on('postgres_changes', { 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'users',
+            filter: `player_id=eq.${playerId}` 
+        }, (payload) => {
+            console.log('Live update captured via player_id:', payload.new);
+            updateUI(payload.new);
+        })
+        .subscribe();
+    }
+
+    // 🏠👤 टैब स्विचिंग फंक्शन (Home <-> Profile एक्टिव बटन लॉजिक)
+    function switchTab(tabName) {
+      document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+
+      if (tabName === 'home') {
+        if(document.getElementById('home-section')) document.getElementById('home-section').classList.add('active');
+        if(document.getElementById('nav-home-btn')) document.getElementById('nav-home-btn').classList.add('active');
+      } else if (tabName === 'profile') {
+        if(document.getElementById('profile-section')) document.getElementById('profile-section').classList.add('active');
+        if(document.getElementById('nav-profile-btn')) document.getElementById('nav-profile-btn').classList.add('active');
+      }
+    }
+
+    // लॉग आउट लॉजिक
+    function handleLogout() {
+      localStorage.removeItem('my77play_user');
+      localStorage.removeItem('my77play_id');
+      localStorage.removeItem('my77play_name');
+      localStorage.removeItem('my77play_balance');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
